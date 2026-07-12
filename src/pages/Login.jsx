@@ -29,8 +29,9 @@ const Login = () => {
         localStorage.setItem('tenant', JSON.stringify(tenantResponse.data));
       }
 
-      // Redirect to the dashboard or desired page
-      navigate('/');
+      // Send the user to choose their working context (a local church or the whole parish)
+      localStorage.removeItem('activeChurch');
+      navigate('/select-context');
     } catch (err) {
       // Set error message if login fails
       setError(err.response?.data?.message || 'Login failed. Please try again.');

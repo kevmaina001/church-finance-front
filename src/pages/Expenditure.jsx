@@ -3,17 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import API from '../utils/apiConfig';
 
 const Expenditure = () => {
+  // Active working context: a specific local church, or the whole parish.
+  const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
+  const scopedChurchId = activeChurch && activeChurch.id && activeChurch.id !== 'parish' ? activeChurch.id : '';
+
   const [expenditures, setExpenditures] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [localChurches, setLocalChurches] = useState([]);
-  const [churchFilter, setChurchFilter] = useState('');
+  const [churchFilter, setChurchFilter] = useState(scopedChurchId);
   const [form, setForm] = useState({
     votehead: '',
     amount: '',
     description: '',
     year: new Date().getFullYear(),
     assetAccount: '',
-    localChurch: '',
+    localChurch: scopedChurchId,
     date: new Date().toISOString().split('T')[0],
   });
   const [editId, setEditId] = useState(null);
@@ -113,7 +117,7 @@ const Expenditure = () => {
         });
       }
 
-      setForm({ votehead: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '', localChurch: '', date: new Date().toISOString().split('T')[0] });
+      setForm({ votehead: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '', localChurch: scopedChurchId, date: new Date().toISOString().split('T')[0] });
       fetchExpenditures();
     } catch (error) {
       console.error('Error saving expenditure:', error.response?.data?.message || error.message);
@@ -201,16 +205,22 @@ const Expenditure = () => {
                   ))}
                 </select>
 
-                <select
-                  value={form.localChurch}
-                  onChange={(e) => setForm({ ...form, localChurch: e.target.value })}
-                  className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Parish (general)</option>
-                  {localChurches.map((church) => (
-                    <option key={church._id} value={church._id}>{church.name}</option>
-                  ))}
-                </select>
+                {scopedChurchId ? (
+                  <div className="p-2 border rounded bg-gray-100 text-gray-700 flex items-center" title="Set by your selected working context">
+                    Church: <span className="font-medium ml-1">{activeChurch.name}</span>
+                  </div>
+                ) : (
+                  <select
+                    value={form.localChurch}
+                    onChange={(e) => setForm({ ...form, localChurch: e.target.value })}
+                    className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="">Parish (general)</option>
+                    {localChurches.map((church) => (
+                      <option key={church._id} value={church._id}>{church.name}</option>
+                    ))}
+                  </select>
+                )}
 
                 <input
                   type="number"
@@ -242,17 +252,22 @@ const Expenditure = () => {
           {/* Table Section - Scrollable */}
           <div className="bg-white rounded-lg shadow-md">
             <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <h2 className="text-xl font-semibold text-gray-800">Expenditure Records</h2>
-              <select
-                value={churchFilter}
-                onChange={(e) => { setChurchFilter(e.target.value); fetchExpenditures(e.target.value); }}
-                className="p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="">All churches (parish total)</option>
-                {localChurches.map((church) => (
-                  <option key={church._id} value={church._id}>{church.name}</option>
-                ))}
-              </select>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Expenditure Records
+                {scopedChurchId && <span className="text-sm font-normal text-gray-500 ml-2">— {activeChurch.name}</span>}
+              </h2>
+              {!scopedChurchId && (
+                <select
+                  value={churchFilter}
+                  onChange={(e) => { setChurchFilter(e.target.value); fetchExpenditures(e.target.value); }}
+                  className="p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">All churches (parish total)</option>
+                  {localChurches.map((church) => (
+                    <option key={church._id} value={church._id}>{church.name}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="h-[calc(100vh-400px)] overflow-y-auto">
               <table className="min-w-full divide-y divide-gray-200">

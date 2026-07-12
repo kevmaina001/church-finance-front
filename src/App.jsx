@@ -17,13 +17,16 @@ import JournalEntries from './pages/JournalEntries';
 import RevenueSourceManagement from './pages/RevenueSourceManagement';
 import UserManagement from './pages/UserManagement';
 import LocalChurchManagement from './pages/LocalChurchManagement';
+import SelectContext from './pages/SelectContext';
 
 // A component to handle the root URL redirect logic
 const RootRedirect = () => {
   const token = localStorage.getItem('token');
-  // If a token exists, the user is likely logged in. Redirect to the app.
-  // Otherwise, send them to the login page.
-  return token ? <Navigate to="/app/dashboard" replace /> : <Navigate to="/login" replace />;
+  if (!token) return <Navigate to="/login" replace />;
+  // Logged in: if a working context (local church / parish) has been chosen, go to the
+  // app; otherwise send them to pick one first.
+  const hasContext = localStorage.getItem('activeChurch');
+  return hasContext ? <Navigate to="/app/dashboard" replace /> : <Navigate to="/select-context" replace />;
 };
 
 const App = () => {
@@ -38,6 +41,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/select-context" element={<SelectContext />} />
 
         {/* Protected Pages with MainLayout as a wrapper, now under /app */}
         <Route path="/app" element={<MainLayout />}>

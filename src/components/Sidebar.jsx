@@ -12,6 +12,7 @@ const Sidebar = () => {
 
   const user = JSON.parse(localStorage.getItem('user')) || {};
   const tenant = JSON.parse(localStorage.getItem('tenant')) || {};
+  const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
   const { name: userName = 'Guest', role: userRole } = user;
   const { name: tenantName = 'Church Finance' } = tenant;
 
@@ -120,6 +121,22 @@ const Sidebar = () => {
             >
               <FaSignOutAlt />
               <span>Logout</span>
+            </button>
+          </div>
+        </div>
+        {/* Active working context (local church / parish) */}
+        <div className="px-4 py-3 border-b border-indigo-700 bg-indigo-800 bg-opacity-40">
+          <div className="text-xs uppercase tracking-wide text-teal-300">Working on</div>
+          <div className="flex items-center justify-between mt-1">
+            <span className="font-semibold text-sm flex items-center gap-2 truncate">
+              <FaChurch className="flex-shrink-0" />
+              <span className="truncate">{activeChurch?.name || 'No context selected'}</span>
+            </span>
+            <button
+              onClick={() => { navigate('/select-context'); if (isMobile) closeSidebar(); }}
+              className="text-xs text-teal-300 hover:text-white underline flex-shrink-0 ml-2"
+            >
+              Switch
             </button>
           </div>
         </div>
