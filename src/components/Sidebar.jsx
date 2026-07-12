@@ -48,6 +48,7 @@ const Sidebar = () => {
     { path: '/app/voteheads', label: 'Voteheads', icon: <FaClipboardList /> },
     { path: '/app/revenue-sources', label: 'Revenue Sources', icon: <FaClipboardList /> },
     { path: '/app/local-churches', label: 'Local Churches', icon: <FaChurch /> },
+    { path: '/app/members', label: 'Members', icon: <FaUsers /> },
     { path: '/app/visualization', label: 'Visuals', icon: <FaChartBar /> },
     { path: '/app/accounting', label: 'Accounting Reports', icon: <FaChartBar /> },
     { path: '/app/accounts', label: 'Accounts', icon: <FaBook /> },

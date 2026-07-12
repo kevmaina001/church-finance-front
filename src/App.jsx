@@ -18,6 +18,7 @@ import JournalEntries from './pages/JournalEntries';
 import RevenueSourceManagement from './pages/RevenueSourceManagement';
 import UserManagement from './pages/UserManagement';
 import LocalChurchManagement from './pages/LocalChurchManagement';
+import MemberManagement from './pages/MemberManagement';
 import SelectContext from './pages/SelectContext';
 
 // A component to handle the root URL redirect logic
@@ -58,6 +59,7 @@ const App = () => {
           <Route path="journal-entries" element={<JournalEntries />} />
           <Route path="revenue-sources" element={<RevenueSourceManagement />} />
           <Route path="local-churches" element={<LocalChurchManagement />} />
+          <Route path="members" element={<MemberManagement />} />
           <Route path="user-management" element={<UserManagement />} />
         </Route>
       </Routes>
