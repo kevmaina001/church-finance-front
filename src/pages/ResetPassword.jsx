@@ -38,52 +38,51 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4 text-center">Reset Password</h1>
+    <div className="min-h-screen flex items-center justify-center bg-[#f6f8fb] px-4 py-10">
+      <div className="app-surface rounded-2xl p-6 sm:p-8 w-full max-w-md">
+        <p className="text-sm font-semibold text-teal-700 text-center">Account recovery</p>
+        <h1 className="text-3xl font-bold mt-1 mb-6 text-center text-slate-950">Reset Password</h1>
         {message && (
-          <div className="bg-green-100 text-green-700 p-3 rounded mb-4">
+          <div className="bg-teal-50 border border-teal-200 text-teal-700 p-3 rounded-lg mb-4 text-sm">
             {message}
           </div>
         )}
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4 text-sm">
             {error}
           </div>
         )}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">New Password</label>
+            <label className="block text-sm font-bold text-slate-700">New Password</label>
             <input
               type="password"
-              placeholder="Enter new password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="p-2 border rounded w-full mt-1"
+              className="app-field mt-1.5"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+            <label className="block text-sm font-bold text-slate-700">Confirm Password</label>
             <input
               type="password"
-              placeholder="Confirm new password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              className="p-2 border rounded w-full mt-1"
+              className="app-field mt-1.5"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            className="app-primary-button w-full"
             disabled={loading}
           >
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
-        <p className="text-center mt-4">
-          <a href="/login" className="text-blue-600 hover:underline">
+        <p className="text-center mt-5 text-sm">
+          <a href="/login" className="text-teal-700 font-bold hover:text-teal-900">
             Back to login
           </a>
         </p>

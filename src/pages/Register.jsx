@@ -32,7 +32,12 @@ const Register = () => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      setError(err.response.data.message || 'Something went wrong');
+      setError(
+        err.response?.data?.message ||
+          (err.request
+            ? 'Could not reach the server. Please check your connection or try again later.'
+            : 'Something went wrong')
+      );
       setSuccess('');
     }
   };

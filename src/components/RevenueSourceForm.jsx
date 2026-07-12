@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../utils/apiConfig';
 
@@ -11,6 +11,30 @@ const RevenueSourceForm = () => {
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const fetchRevenueSources = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await API.get('/api/revenue-sources', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setRevenueSources(response.data.revenueSources || []);
+    } catch (err) {
+      console.error('Error fetching revenue sources:', err.response?.data?.message || err.message);
+    }
+  };
+
+  const fetchAccounts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await API.get('/api/accounts', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAccounts((response.data.accounts || []).filter((account) => account.isActive && account.type === 'revenue'));
+    } catch (err) {
+      console.error('Error fetching accounts:', err.response?.data?.message || err.message);
+    }
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -26,33 +50,8 @@ const RevenueSourceForm = () => {
     fetchInitialData();
   }, [navigate]);
 
-  const fetchRevenueSources = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await API.get('/api/revenue-sources', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setRevenueSources(response.data.revenueSources);
-    } catch (err) {
-      console.error('Error fetching revenue sources:', err.response?.data?.message || err.message);
-    }
-  };
-
-  const fetchAccounts = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await API.get('/api/accounts', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // Filter for active revenue accounts
-      setAccounts(response.data.accounts.filter(account => account.isActive && account.type === 'revenue'));
-    } catch (err) {
-      console.error('Error fetching accounts:', err.response?.data?.message || err.message);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
@@ -61,7 +60,7 @@ const RevenueSourceForm = () => {
       await API.post('/api/revenue-sources', form, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccess('Revenue source added successfully');
+      setSuccess('Revenue source added successfully.');
       setForm({ name: '', description: '', account: '' });
       fetchRevenueSources();
     } catch (err) {
@@ -81,7 +80,7 @@ const RevenueSourceForm = () => {
       await API.delete(`/api/revenue-sources/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccess('Revenue source deleted successfully');
+      setSuccess('Revenue source deleted successfully.');
       fetchRevenueSources();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete revenue source. Please try again.');
@@ -92,113 +91,101 @@ const RevenueSourceForm = () => {
 
   if (role !== 'Admin') {
     return (
-      <div className="bg-red-100 text-red-700 p-4 rounded">
-        Access denied: Only Admins can manage revenue sources.
+      <div className="app-page">
+        <div className="app-card p-5 text-red-700 bg-red-50 border-red-200">
+          Access denied: Only Admins can manage revenue sources.
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-r from-blue-50 to-blue-100 pb-24">
-      {/* Header Section */}
-      <div className="bg-blue-50 p-4 shadow-md">
-        <h1 className="text-2xl font-bold text-blue-700">Revenue Source Management</h1>
-      </div>
-      <div className="flex-grow overflow-y-auto mt-16 sm:mt-0">
-        <div className="w-full max-w-md sm:max-w-2xl md:max-w-4xl mx-auto px-2">
-          {/* Error and Success Messages */}
-          {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
-          {success && <div className="bg-green-100 text-green-700 p-3 rounded mb-4">{success}</div>}
-          {/* Add Revenue Source Form */}
-          <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Add Revenue Source</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="Enter revenue source name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="p-2 border rounded w-full mt-1"
-                  required
-                />
-                <textarea
-                  placeholder="Enter revenue source description"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="p-2 border rounded w-full mt-1"
-                  required
-                />
-                <div className="md:col-span-2">
-                  <select
-                    value={form.account}
-                    onChange={(e) => setForm({ ...form, account: e.target.value })}
-                    className="p-2 border rounded w-full mt-1"
-                    required
-                  >
-                    <option value="">Select a revenue account</option>
-                    {accounts.map((account) => (
-                      <option key={account._id} value={account._id}>
-                        {account.name} ({account.code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                disabled={loading}
-              >
-                {loading ? 'Processing...' : 'Add Revenue Source'}
-              </button>
-            </form>
+    <div className="app-page space-y-6">
+      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-teal-700">Income setup</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Revenue Sources</h1>
+          <p className="text-sm text-slate-600 mt-2">Create income categories and map them to revenue accounts.</p>
+        </div>
+        <div className="app-muted-panel px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-500">Configured</p>
+          <p className="text-xl font-bold text-slate-950">{revenueSources.length} sources</p>
+        </div>
+      </section>
+
+      {(error || success) && (
+        <div className={`rounded-xl border p-3 text-sm ${error ? 'bg-red-50 border-red-200 text-red-700' : 'bg-teal-50 border-teal-200 text-teal-700'}`}>
+          {error || success}
+        </div>
+      )}
+
+      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-5 items-start">
+        <div className="app-card p-5">
+          <h2 className="text-lg font-bold text-slate-950">Add revenue source</h2>
+          <p className="text-sm text-slate-500 mt-1">Use names that donors and finance reports will recognize.</p>
+
+          <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Name</span>
+              <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="app-field mt-1.5" required />
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Description</span>
+              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="app-field mt-1.5 min-h-24" required />
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Revenue account</span>
+              <select value={form.account} onChange={(e) => setForm({ ...form, account: e.target.value })} className="app-field mt-1.5" required>
+                <option value="">Select a revenue account</option>
+                {accounts.map((account) => (
+                  <option key={account._id} value={account._id}>{account.name} ({account.code})</option>
+                ))}
+              </select>
+            </label>
+            <button type="submit" className="app-primary-button w-full" disabled={loading}>
+              {loading ? 'Processing...' : 'Add Revenue Source'}
+            </button>
+          </form>
+        </div>
+
+        <div className="app-card overflow-hidden">
+          <div className="p-5 border-b border-slate-200">
+            <h2 className="text-lg font-bold text-slate-950">Existing Revenue Sources</h2>
+            <p className="text-sm text-slate-500 mt-1">Categories used when recording income.</p>
           </div>
-          {/* Table Section - Scrollable */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800">Existing Revenue Sources</h2>
-            </div>
-            <div className="h-[calc(100vh-400px)] overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-blue-500 to-blue-600 sticky top-0">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Revenue Account</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
+          <div className="overflow-x-auto app-scrollbar">
+            <table className="app-table min-w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="px-5 py-3 text-left">Name</th>
+                  <th className="px-5 py-3 text-left">Description</th>
+                  <th className="px-5 py-3 text-left">Revenue Account</th>
+                  <th className="px-5 py-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {revenueSources.map((source) => (
+                  <tr key={source._id} className="hover:bg-slate-50">
+                    <td className="px-5 py-4 whitespace-nowrap font-bold text-slate-900">{source.name}</td>
+                    <td className="px-5 py-4 text-slate-600">{source.description || '-'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-600">{source.account?.name || 'N/A'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <button onClick={() => handleDelete(source._id)} className="text-red-700 hover:text-red-900 font-bold">Delete</button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {revenueSources.map((source) => (
-                    <tr key={source._id} className="hover:bg-blue-50 transition-colors duration-200">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {source.name}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {source.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {source.account?.name || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => handleDelete(source._id)}
-                          className="text-red-600 hover:text-red-900 transition-colors duration-200"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                {revenueSources.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="px-5 py-12 text-center text-slate-500">No revenue sources configured.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
 
-export default RevenueSourceForm; 
+export default RevenueSourceForm;

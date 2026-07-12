@@ -459,18 +459,27 @@ const AccountingReports = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen mt-16 sm:mt-0">
-      <h1 className="text-3xl font-bold text-center mb-1">Accounting Reports</h1>
-      <p className="text-center text-sm text-gray-500 mb-6">
-        Showing: <span className="font-medium">{scopedChurchId ? activeChurch.name : 'Whole Parish (Consolidated)'}</span>
-      </p>
+    <div className="app-page space-y-6 accounting-report">
+      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-teal-700">Accounting</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Accounting Reports</h1>
+          <p className="text-sm text-slate-600 mt-2">
+            Showing <span className="font-bold text-slate-900">{scopedChurchId ? activeChurch.name : 'Whole Parish'}</span>.
+          </p>
+        </div>
+        <div className="app-muted-panel px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-500">Report</p>
+          <p className="text-xl font-bold text-slate-950 capitalize">{reportType.replace(/-/g, ' ')}</p>
+        </div>
+      </section>
 
-      <div className="mb-6 bg-white p-4 rounded-lg shadow">
+      <div className="app-card p-5">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
             value={reportType}
             onChange={(e) => setReportType(e.target.value)}
-            className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="app-field"
           >
             <option value="trial-balance">Trial Balance</option>
             <option value="income-expenditure">Income & Expenditure</option>
@@ -485,7 +494,7 @@ const AccountingReports = () => {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="app-field"
             />
           )}
 
@@ -494,14 +503,14 @@ const AccountingReports = () => {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="app-field"
             />
           )}
 
           <button
             onClick={fetchReport}
             disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="app-primary-button disabled:opacity-50"
           >
             {loading ? 'Loading...' : 'Generate Report'}
           </button>
@@ -509,14 +518,14 @@ const AccountingReports = () => {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <div className="rounded-xl border p-3 text-sm bg-red-50 border-red-200 text-red-700">
           {error}
         </div>
       )}
 
-      <div className="bg-white p-4 rounded-lg shadow min-h-[200px]">
+      <div className="app-card p-5 min-h-[220px] overflow-hidden">
         {loading ? (
-          <div className="text-center text-blue-600 font-semibold">Loading report...</div>
+          <div className="text-center text-slate-500 font-semibold py-12">Loading report...</div>
         ) : (
           renderReport()
         )}

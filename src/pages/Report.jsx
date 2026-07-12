@@ -1,37 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import API from '../utils/apiConfig';
+import React, { useEffect, useState } from 'react';
 import moment from 'moment';
-import {
-  Box,
-  Button,
-  Container,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Typography,
-  Grid,
-  TextField,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
-import {
-  Download as DownloadIcon,
-  PictureAsPdf as PdfIcon,
-  TableChart as ExcelIcon,
-} from '@mui/icons-material';
+import { FaFileExcel, FaFilePdf } from 'react-icons/fa';
+import API from '../utils/apiConfig';
 
 const Report = () => {
-  const navigate = useNavigate();
-  // Active working context: a specific local church, or the whole parish.
   const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
   const scopedChurchId = activeChurch && activeChurch.id && activeChurch.id !== 'parish' ? activeChurch.id : '';
   const [filterType, setFilterType] = useState('income');
@@ -54,14 +26,14 @@ const Report = () => {
           ...(scopedChurchId && { localChurch: scopedChurchId }),
         },
       });
-      setData(response.data.records);
+      setData(response.data.records || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
-  
+
   const fetchCombinedData = async () => {
     try {
       setLoading(true);
@@ -73,7 +45,7 @@ const Report = () => {
           ...(scopedChurchId && { localChurch: scopedChurchId }),
         },
       });
-      setCombinedData(response.data.aggregatedData);
+      setCombinedData(response.data.aggregatedData || []);
     } catch (error) {
       console.error('Error fetching combined data:', error);
     } finally {
@@ -93,7 +65,7 @@ const Report = () => {
     try {
       const endpoint = activeSection === 'original' ? '/api/reports/download-report' : '/api/reports/download-aggregated-report';
       const type = activeSection === 'original' ? filterType : combinedFilterType;
-      
+
       const response = await API.get(endpoint, {
         params: {
           type,
@@ -104,7 +76,7 @@ const Report = () => {
         },
         responseType: 'blob',
       });
-  
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -116,144 +88,139 @@ const Report = () => {
       console.error('Error downloading report:', error);
     }
   };
-  
+
+  const activeType = activeSection === 'original' ? filterType : combinedFilterType;
+  const originalTotal = data.reduce((sum, record) => sum + (record.amount || 0), 0);
+  const combinedTotal = combinedData.reduce((sum, item) => sum + (item.totalAmount || 0), 0);
+  const total = activeSection === 'original' ? originalTotal : combinedTotal;
+
   return (
-    <div className="w-full px-2 md:px-0 md:max-w-4xl mx-auto mt-16 sm:mt-0">
-      <div className="bg-white rounded-lg shadow p-4 md:p-8">
-        <h1 className="text-2xl font-bold text-blue-700 mb-1">Reports</h1>
-        <p className="text-sm text-gray-500 mb-4">
-          Showing: <span className="font-medium">{scopedChurchId ? activeChurch.name : 'Whole Parish (Consolidated)'}</span>
-        </p>
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <Grid item xs={12} sm={6}>
-            <Button
-              variant={activeSection === 'original' ? 'contained' : 'outlined'}
-            onClick={() => setActiveSection('original')}
-              fullWidth
-          >
-            Original Data
-            </Button>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Button
-              variant={activeSection === 'combined' ? 'contained' : 'outlined'}
-            onClick={() => setActiveSection('combined')}
-              fullWidth
-          >
-            Combined Data
-            </Button>
-          </Grid>
+    <div className="app-page space-y-6">
+      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-teal-700">Financial intelligence</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Reports</h1>
+          <p className="text-sm text-slate-600 mt-2">
+            Showing <span className="font-bold text-slate-900">{scopedChurchId ? activeChurch.name : 'Whole Parish'}</span> from {moment(startDate).format('MMM D, YYYY')} to {moment(endDate).format('MMM D, YYYY')}.
+          </p>
+        </div>
+        <div className="app-muted-panel px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-500">Report total</p>
+          <p className="text-xl font-bold text-slate-950">KES {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        </div>
+      </section>
+
+      <section className="app-card p-5">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+          <div className="inline-grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setActiveSection('original')}
+              className={`rounded-lg px-4 py-2 text-sm font-bold transition ${activeSection === 'original' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
+            >
+              Detailed
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection('combined')}
+              className={`rounded-lg px-4 py-2 text-sm font-bold transition ${activeSection === 'combined' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600 hover:text-slate-950'}`}
+            >
+              Summary
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-[180px_170px_170px_auto] gap-3 w-full xl:w-auto">
+            <select
+              value={activeType}
+              onChange={(event) => {
+                if (activeSection === 'original') {
+                  setFilterType(event.target.value);
+                } else {
+                  setCombinedFilterType(event.target.value);
+                }
+              }}
+              className="app-field text-sm"
+            >
+              <option value="income">Income</option>
+              <option value="expenditure">Expenditure</option>
+            </select>
+            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="app-field text-sm" />
+            <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="app-field text-sm" />
+            <div className="flex gap-2">
+              <button type="button" onClick={() => handleDownload('pdf')} className="app-secondary-button inline-flex items-center gap-2">
+                <FaFilePdf /> PDF
+              </button>
+              <button type="button" onClick={() => handleDownload('xlsx')} className="app-secondary-button inline-flex items-center gap-2">
+                <FaFileExcel /> Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="app-card overflow-hidden">
+        <div className="p-5 border-b border-slate-200 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">{activeSection === 'original' ? 'Detailed Records' : 'Summary by Category'}</h2>
+            <p className="text-sm text-slate-500 mt-1">{loading ? 'Loading report data...' : `${activeSection === 'original' ? data.length : combinedData.length} rows`}</p>
+          </div>
+          <span className={`app-chip ${activeType === 'income' ? 'bg-teal-50 text-teal-700' : 'bg-orange-50 text-orange-700'}`}>
+            {activeType}
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4">
-          <Grid item xs={12} sm={3}>
-            <FormControl fullWidth>
-              <InputLabel>Report Type</InputLabel>
-              <Select
-                value={activeSection === 'original' ? filterType : combinedFilterType}
-                    onChange={(e) => {
-                  if (activeSection === 'original') {
-                    setFilterType(e.target.value);
-                  } else {
-                    setCombinedFilterType(e.target.value);
-                  }
-                }}
-                label="Report Type"
-              >
-                <MenuItem value="income">Income</MenuItem>
-                <MenuItem value="expenditure">Expenditure</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              fullWidth
-              type="date"
-              label="Start Date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              fullWidth
-              type="date"
-              label="End Date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Tooltip title="Download PDF">
-                <IconButton onClick={() => handleDownload('pdf')} color="primary">
-                  <PdfIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Download Excel">
-                <IconButton onClick={() => handleDownload('xlsx')} color="primary">
-                  <ExcelIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </Grid>
-        </div>
-
-        {activeSection === 'original' ? (
-          <div className="overflow-x-auto mt-4">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-blue-100">
+        <div className="overflow-x-auto app-scrollbar">
+          {activeSection === 'original' ? (
+            <table className="app-table min-w-full text-sm">
+              <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Date</th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">{filterType === 'income' ? 'Revenue Source' : 'Votehead'}</th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Amount</th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Description</th>
+                  <th className="px-5 py-3 text-left">Date</th>
+                  <th className="px-5 py-3 text-left">{filterType === 'income' ? 'Revenue Source' : 'Votehead'}</th>
+                  <th className="px-5 py-3 text-right">Amount</th>
+                  <th className="px-5 py-3 text-left">Description</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {data.map((record) => (
-                  <tr key={record._id}>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">{moment(record.createdAt).format('MMM D, YYYY')}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">{filterType === 'income' ? record.revenueSource?.name || 'N/A' : record.votehead?.name || 'N/A'}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">{record.amount.toFixed(2)}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">{record.description || 'N/A'}</td>
+                  <tr key={record._id} className="hover:bg-slate-50">
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-600">{moment(record.createdAt).format('MMM D, YYYY')}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-800 font-medium">{filterType === 'income' ? record.revenueSource?.name || 'N/A' : record.votehead?.name || 'N/A'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-right font-bold text-slate-950">KES {(record.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="px-5 py-4 text-slate-600">{record.description || '-'}</td>
                   </tr>
                 ))}
-                <tr className="bg-blue-50">
-                  <td colSpan={2} />
-                  <td className="px-4 py-2 font-bold text-blue-800">Total: {data.reduce((sum, record) => sum + record.amount, 0).toFixed(2)}</td>
-                  <td />
-                </tr>
+                {data.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="px-5 py-12 text-center text-slate-500">No records match this report.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
-          </div>
-        ) : (
-          <div className="overflow-x-auto mt-4">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-purple-100">
+          ) : (
+            <table className="app-table min-w-full text-sm">
+              <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">{combinedFilterType === 'income' ? 'Revenue Source' : 'Votehead'}</th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Total Amount</th>
+                  <th className="px-5 py-3 text-left">{combinedFilterType === 'income' ? 'Revenue Source' : 'Votehead'}</th>
+                  <th className="px-5 py-3 text-right">Total Amount</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {combinedData.map((item) => (
-                  <tr key={item.name}>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">{item.name}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">{item.totalAmount.toFixed(2)}</td>
+                  <tr key={item.name} className="hover:bg-slate-50">
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-800 font-medium">{item.name}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-right font-bold text-slate-950">KES {(item.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   </tr>
                 ))}
-                <tr className="bg-purple-50">
-                  <td className="px-4 py-2 font-bold text-purple-800">Total</td>
-                  <td className="px-4 py-2 font-bold text-purple-800">{combinedData.reduce((sum, item) => sum + item.totalAmount, 0).toFixed(2)}</td>
-                </tr>
+                {combinedData.length === 0 && (
+                  <tr>
+                    <td colSpan="2" className="px-5 py-12 text-center text-slate-500">No summary data matches this report.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

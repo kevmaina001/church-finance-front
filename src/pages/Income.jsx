@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import API from '../utils/apiConfig';
 
 const Income = () => {
-  // Active working context: a specific local church, or the whole parish.
   const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
   const scopedChurchId = activeChurch && activeChurch.id && activeChurch.id !== 'parish' ? activeChurch.id : '';
 
@@ -22,8 +21,6 @@ const Income = () => {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [collapsedMonths, setCollapsedMonths] = useState({});
-  const [userName, setUserName] = useState('');
 
   const fetchIncomes = async (churchId = churchFilter) => {
     try {
@@ -31,7 +28,7 @@ const Income = () => {
       const response = await API.get(`/api/incomes${query}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      setIncomes(response.data.incomes);
+      setIncomes(response.data.incomes || []);
     } catch (error) {
       console.error('Error fetching incomes:', error.response?.data?.message);
     }
@@ -43,7 +40,7 @@ const Income = () => {
       const response = await API.get('/api/local-churches', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setLocalChurches((response.data.localChurches || []).filter((c) => c.isActive));
+      setLocalChurches((response.data.localChurches || []).filter((church) => church.isActive));
     } catch (error) {
       console.error('Error fetching local churches:', error.response?.data?.message || error.message);
     }
@@ -55,7 +52,7 @@ const Income = () => {
       const response = await API.get('/api/revenue-sources', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setRevenueSources(response.data.revenueSources);
+      setRevenueSources(response.data.revenueSources || []);
     } catch (error) {
       console.error('Error fetching revenue sources:', error.response?.data?.message || error.message);
     }
@@ -67,28 +64,18 @@ const Income = () => {
       const response = await API.get('/api/accounts', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Only cash/bank accounts (chart convention: 1000-1099) belong in the money dropdown,
-      // not other assets like Receivables/Equipment/Furniture.
-      setAccounts(response.data.accounts.filter(a => a.isActive && a.type === 'asset' && Number(a.code) >= 1000 && Number(a.code) <= 1099));
+      setAccounts(
+        (response.data.accounts || []).filter(
+          (account) => account.isActive && account.type === 'asset' && Number(account.code) >= 1000 && Number(account.code) <= 1099
+        )
+      );
     } catch (error) {
       console.error('Error fetching accounts:', error.response?.data?.message || error.message);
     }
   };
 
-  const fetchUserName = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await API.get('/api/users/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUserName(response.data.name);
-    } catch (error) {
-      console.error('Error fetching user name:', error.response?.data?.message || error.message);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setLoading(true);
 
@@ -134,177 +121,127 @@ const Income = () => {
     }
   };
 
-  const toggleMonth = (month) => {
-    setCollapsedMonths((prev) => ({ ...prev, [month]: !prev[month] }));
-  };
-
-  const groupIncomesByMonth = () => {
-    const grouped = incomes.reduce((acc, income) => {
-      const date = new Date(income.createdAt);
-      const month = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-      if (!acc[month]) acc[month] = [];
-      acc[month].push(income);
-      return acc;
-    }, {});
-    return grouped;
-  };
-
   useEffect(() => {
     fetchIncomes();
     fetchRevenueSources();
     fetchAccounts();
-    fetchUserName();
     fetchLocalChurches();
   }, []);
 
-  const groupedIncomes = groupIncomesByMonth();
-
-  const grandTotal = incomes.reduce((sum, income) => sum + income.amount, 0);
+  const grandTotal = incomes.reduce((sum, income) => sum + (income.amount || 0), 0);
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen">
-      {/* Main Content */}
-      <div className="flex-grow overflow-y-auto bg-gradient-to-r from-blue-50 to-blue-100 pb-24 mt-16 sm:mt-0">
-        <div className="w-full max-w-md sm:max-w-2xl md:max-w-4xl mx-auto px-2">
-          {/* Form Section - Always visible */}
-          <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Add New Income</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <select
-                  value={form.revenueSource}
-                  onChange={(e) => setForm({ ...form, revenueSource: e.target.value })}
-                  className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Select Revenue Source</option>
-                  {revenueSources.map((source) => (
-                    <option key={source._id} value={source._id}>{source.name}</option>
-                  ))}
-                </select>
+    <div className="app-page space-y-6">
+      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-teal-700">Transactions</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Income</h1>
+          <p className="text-sm text-slate-600 mt-2">
+            Capture income records for <span className="font-bold text-slate-900">{scopedChurchId ? activeChurch.name : 'the whole parish'}</span>.
+          </p>
+        </div>
+        <div className="app-muted-panel px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-500">Total shown</p>
+          <p className="text-xl font-bold text-slate-950">KES {grandTotal.toLocaleString()}</p>
+        </div>
+      </section>
 
-                <select
-                  value={form.assetAccount}
-                  onChange={(e) => setForm({ ...form, assetAccount: e.target.value })}
-                  className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Select Account (Cash/Bank)</option>
-                  {accounts.map((account) => (
-                    <option key={account._id} value={account._id}>{account.code} - {account.name}</option>
-                  ))}
-                </select>
+      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-5 items-start">
+        <div className="app-card p-5">
+          <h2 className="text-lg font-bold text-slate-950">{editId ? 'Update income' : 'Add income'}</h2>
+          <p className="text-sm text-slate-500 mt-1">Use concise descriptions so reports remain easy to scan.</p>
 
-                {scopedChurchId ? (
-                  <div className="p-2 border rounded bg-gray-100 text-gray-700 flex items-center" title="Set by your selected working context">
-                    Church: <span className="font-medium ml-1">{activeChurch.name}</span>
-                  </div>
-                ) : (
-                  <select
-                    value={form.localChurch}
-                    onChange={(e) => setForm({ ...form, localChurch: e.target.value })}
-                    className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Parish (general)</option>
-                    {localChurches.map((church) => (
-                      <option key={church._id} value={church._id}>{church.name}</option>
-                    ))}
-                  </select>
-                )}
+          <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+            <select value={form.revenueSource} onChange={(e) => setForm({ ...form, revenueSource: e.target.value })} className="app-field" required>
+              <option value="">Select revenue source</option>
+              {revenueSources.map((source) => (
+                <option key={source._id} value={source._id}>{source.name}</option>
+              ))}
+            </select>
 
-                <input
-                  type="number"
-                  placeholder="Amount"
-                  className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={form.amount}
-                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Description"
-                  className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 col-span-1 md:col-span-2"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
+            <select value={form.assetAccount} onChange={(e) => setForm({ ...form, assetAccount: e.target.value })} className="app-field" required>
+              <option value="">Select cash or bank account</option>
+              {accounts.map((account) => (
+                <option key={account._id} value={account._id}>{account.code} - {account.name}</option>
+              ))}
+            </select>
+
+            {scopedChurchId ? (
+              <div className="app-muted-panel px-3 py-2 text-sm text-slate-700 flex items-center min-h-[44px]" title="Set by your selected working context">
+                Church: <span className="font-medium ml-1">{activeChurch.name}</span>
               </div>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition ease-in-out duration-200"
-                disabled={loading}
-              >
-                {loading ? 'Processing...' : editId ? 'Update Income' : 'Add Income'}
-              </button>
-              {error && <p className="text-red-500 mt-2">{error}</p>}
-            </form>
+            ) : (
+              <select value={form.localChurch} onChange={(e) => setForm({ ...form, localChurch: e.target.value })} className="app-field">
+                <option value="">Parish general</option>
+                {localChurches.map((church) => (
+                  <option key={church._id} value={church._id}>{church.name}</option>
+                ))}
+              </select>
+            )}
+
+            <input type="number" placeholder="Amount" className="app-field" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
+            <input type="text" placeholder="Description" className="app-field" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+
+            <button type="submit" className="app-primary-button w-full" disabled={loading}>
+              {loading ? 'Processing...' : editId ? 'Update Income' : 'Add Income'}
+            </button>
+            {error && <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">{error}</p>}
+          </form>
+        </div>
+
+        <div className="app-card overflow-hidden">
+          <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-slate-950">Income Records</h2>
+              <p className="text-sm text-slate-500 mt-1">{scopedChurchId ? activeChurch.name : 'All churches and parish general'}</p>
+            </div>
+            {!scopedChurchId && (
+              <select value={churchFilter} onChange={(e) => { setChurchFilter(e.target.value); fetchIncomes(e.target.value); }} className="app-field max-w-xs text-sm">
+                <option value="">All churches</option>
+                {localChurches.map((church) => (
+                  <option key={church._id} value={church._id}>{church.name}</option>
+                ))}
+              </select>
+            )}
           </div>
 
-          {/* Table Section - Scrollable */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <h2 className="text-xl font-semibold text-gray-800">
-                Income Records
-                {scopedChurchId && <span className="text-sm font-normal text-gray-500 ml-2">— {activeChurch.name}</span>}
-              </h2>
-              {!scopedChurchId && (
-                <select
-                  value={churchFilter}
-                  onChange={(e) => { setChurchFilter(e.target.value); fetchIncomes(e.target.value); }}
-                  className="p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All churches (parish total)</option>
-                  {localChurches.map((church) => (
-                    <option key={church._id} value={church._id}>{church.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <div className="h-[calc(100vh-400px)] overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-green-500 to-green-600 sticky top-0">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Revenue Source</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Local Church</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
+          <div className="overflow-x-auto app-scrollbar">
+            <table className="app-table min-w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="px-5 py-3 text-left">Date</th>
+                  <th className="px-5 py-3 text-left">Revenue Source</th>
+                  <th className="px-5 py-3 text-left">Local Church</th>
+                  <th className="px-5 py-3 text-right">Amount</th>
+                  <th className="px-5 py-3 text-left">Description</th>
+                  <th className="px-5 py-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {incomes.map((income) => (
+                  <tr key={income._id} className="hover:bg-slate-50 transition-colors duration-150">
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-600">{new Date(income.date || income.createdAt).toLocaleDateString()}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-800 font-medium">{income.revenueSource?.name || 'N/A'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-600">{income.localChurch?.name || 'Parish general'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-right font-bold text-teal-700">KES {income.amount.toLocaleString()}</td>
+                    <td className="px-5 py-4 text-slate-600">{income.description || '-'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <button onClick={() => handleDelete(income._id)} className="text-red-700 hover:text-red-900 font-bold transition-colors duration-150">
+                        Delete
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {incomes.map((income) => (
-                    <tr key={income._id} className="hover:bg-green-50 transition-colors duration-200">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {new Date(income.date).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {income.revenueSource?.name || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {income.localChurch?.name || 'Parish (general)'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                        KES {income.amount.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {income.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => handleDelete(income._id)}
-                          className="text-red-600 hover:text-red-900 transition-colors duration-200"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                {incomes.length === 0 && (
+                  <tr>
+                    <td colSpan="6" className="px-5 py-12 text-center text-slate-500">No income records found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

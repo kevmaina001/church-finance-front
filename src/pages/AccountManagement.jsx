@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import API from '../utils/apiConfig';
 import { useNavigate } from 'react-router-dom';
+import API from '../utils/apiConfig';
+
+const accountTypes = ['asset', 'liability', 'equity', 'revenue', 'expense'];
 
 const AccountManagement = () => {
   const [accounts, setAccounts] = useState([]);
@@ -12,6 +14,18 @@ const AccountManagement = () => {
   const [role, setRole] = useState('');
   const navigate = useNavigate();
 
+  const fetchAccounts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await API.get('/api/accounts', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAccounts(res.data.accounts || []);
+    } catch (err) {
+      setError('Failed to fetch accounts.');
+    }
+  };
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || !localStorage.getItem('token')) {
@@ -22,20 +36,8 @@ const AccountManagement = () => {
     fetchAccounts();
   }, [navigate]);
 
-  const fetchAccounts = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await API.get('/api/accounts', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setAccounts(res.data.accounts);
-    } catch (err) {
-      setError('Failed to fetch accounts.');
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
@@ -63,7 +65,7 @@ const AccountManagement = () => {
   };
 
   const handleEdit = (account) => {
-    setForm({ code: account.code, name: account.name, type: account.type, description: account.description });
+    setForm({ code: account.code, name: account.name, type: account.type, description: account.description || '' });
     setEditId(account._id);
   };
 
@@ -86,58 +88,115 @@ const AccountManagement = () => {
   };
 
   if (role !== 'Admin') {
-    return <div className="bg-red-100 text-red-700 p-4 rounded">Access denied: Only Admins can manage accounts.</div>;
+    return (
+      <div className="app-page">
+        <div className="app-card p-5 text-red-700 bg-red-50 border-red-200">Access denied: Only Admins can manage accounts.</div>
+      </div>
+    );
   }
 
   return (
-    <div className="bg-white shadow-md rounded p-6 w-full max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Account Management</h1>
-      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
-      {success && <div className="bg-green-100 text-green-700 p-3 rounded mb-4">{success}</div>}
-      <form onSubmit={handleSubmit} className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <input type="text" placeholder="Code" value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} className="p-2 border rounded" required disabled={!!editId} />
-        <input type="text" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="p-2 border rounded" required />
-        <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="p-2 border rounded" required disabled={!!editId}>
-          <option value="asset">Asset</option>
-          <option value="liability">Liability</option>
-          <option value="equity">Equity</option>
-          <option value="revenue">Revenue</option>
-          <option value="expense">Expense</option>
-        </select>
-        <input type="text" placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="p-2 border rounded" />
-        <button type="submit" className="col-span-1 md:col-span-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700" disabled={loading}>{loading ? 'Processing...' : editId ? 'Update Account' : 'Add Account'}</button>
-      </form>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2 border">Code</th>
-              <th className="px-4 py-2 border">Name</th>
-              <th className="px-4 py-2 border">Type</th>
-              <th className="px-4 py-2 border">Description</th>
-              <th className="px-4 py-2 border">Status</th>
-              <th className="px-4 py-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {accounts.map(account => (
-              <tr key={account._id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 border">{account.code}</td>
-                <td className="px-4 py-2 border">{account.name}</td>
-                <td className="px-4 py-2 border capitalize">{account.type}</td>
-                <td className="px-4 py-2 border">{account.description}</td>
-                <td className="px-4 py-2 border">{account.isActive ? 'Active' : 'Inactive'}</td>
-                <td className="px-4 py-2 border flex flex-col md:flex-row gap-2">
-                  <button onClick={() => handleEdit(account)} className="bg-yellow-500 text-white py-1 px-3 rounded hover:bg-yellow-600">Edit</button>
-                  <button onClick={() => handleToggleActive(account._id)} className={`py-1 px-3 rounded ${account.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white`}>{account.isActive ? 'Deactivate' : 'Activate'}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="app-page space-y-6">
+      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-teal-700">Chart of accounts</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Accounts</h1>
+          <p className="text-sm text-slate-600 mt-2">Maintain account codes used by income, expenditure, and journals.</p>
+        </div>
+        <div className="app-muted-panel px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-500">Total accounts</p>
+          <p className="text-xl font-bold text-slate-950">{accounts.length}</p>
+        </div>
+      </section>
+
+      {(error || success) && (
+        <div className={`rounded-xl border p-3 text-sm ${error ? 'bg-red-50 border-red-200 text-red-700' : 'bg-teal-50 border-teal-200 text-teal-700'}`}>
+          {error || success}
+        </div>
+      )}
+
+      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-5 items-start">
+        <div className="app-card p-5">
+          <h2 className="text-lg font-bold text-slate-950">{editId ? 'Update account' : 'Add account'}</h2>
+          <p className="text-sm text-slate-500 mt-1">Codes and types drive how records appear in reports.</p>
+          <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Code</span>
+              <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="app-field mt-1.5" required disabled={!!editId} />
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Name</span>
+              <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="app-field mt-1.5" required />
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Type</span>
+              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="app-field mt-1.5 capitalize" required disabled={!!editId}>
+                {accountTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Description</span>
+              <input type="text" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="app-field mt-1.5" />
+            </label>
+            <div className="flex gap-2">
+              {editId && (
+                <button type="button" className="app-secondary-button flex-1" onClick={() => { setEditId(null); setForm({ code: '', name: '', type: 'asset', description: '' }); }}>
+                  Cancel
+                </button>
+              )}
+              <button type="submit" className="app-primary-button flex-1" disabled={loading}>
+                {loading ? 'Processing...' : editId ? 'Update Account' : 'Add Account'}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="app-card overflow-hidden">
+          <div className="p-5 border-b border-slate-200">
+            <h2 className="text-lg font-bold text-slate-950">Account List</h2>
+            <p className="text-sm text-slate-500 mt-1">Active accounts appear in transaction forms.</p>
+          </div>
+          <div className="overflow-x-auto app-scrollbar">
+            <table className="app-table min-w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="px-5 py-3 text-left">Code</th>
+                  <th className="px-5 py-3 text-left">Name</th>
+                  <th className="px-5 py-3 text-left">Type</th>
+                  <th className="px-5 py-3 text-left">Description</th>
+                  <th className="px-5 py-3 text-left">Status</th>
+                  <th className="px-5 py-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accounts.map((account) => (
+                  <tr key={account._id} className="hover:bg-slate-50">
+                    <td className="px-5 py-4 whitespace-nowrap font-bold text-slate-900">{account.code}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-800">{account.name}</td>
+                    <td className="px-5 py-4 whitespace-nowrap capitalize text-slate-600">{account.type}</td>
+                    <td className="px-5 py-4 text-slate-600">{account.description || '-'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className={`app-chip ${account.isActive ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'}`}>
+                        {account.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="flex gap-3">
+                        <button onClick={() => handleEdit(account)} className="font-bold text-slate-700 hover:text-slate-950">Edit</button>
+                        <button onClick={() => handleToggleActive(account._id)} className="font-bold text-teal-700 hover:text-teal-900">
+                          {account.isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
 
-export default AccountManagement; 
+export default AccountManagement;

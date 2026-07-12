@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import API from '../utils/apiConfig';
 
 const LocalChurchManagement = () => {
@@ -23,8 +23,8 @@ const LocalChurchManagement = () => {
     fetchChurches();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setMessage('');
     setLoading(true);
@@ -50,84 +50,86 @@ const LocalChurchManagement = () => {
   };
 
   return (
-    <div className="flex-grow overflow-y-auto bg-gradient-to-r from-blue-50 to-blue-100 pb-24 mt-16 sm:mt-0 min-h-screen">
-      <div className="w-full max-w-md sm:max-w-2xl md:max-w-4xl mx-auto px-2">
-        <div className="bg-white p-4 rounded-lg shadow-md mb-4 mt-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-1">Local Churches</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Congregations under this parish. Income &amp; expenditure can be tagged to a local church,
-            and all of them roll up to the parish total.
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Church name (e.g. Kamune St. Peters Church)"
-                className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Description (optional)"
-                className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
-              disabled={loading}
-            >
+    <div className="app-page space-y-6">
+      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-teal-700">Parish structure</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Local Churches</h1>
+          <p className="text-sm text-slate-600 mt-2">Manage congregations that roll up into parish-level reporting.</p>
+        </div>
+        <div className="app-muted-panel px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-500">Registered</p>
+          <p className="text-xl font-bold text-slate-950">{churches.length} churches</p>
+        </div>
+      </section>
+
+      {(error || message) && (
+        <div className={`rounded-xl border p-3 text-sm ${error ? 'bg-red-50 border-red-200 text-red-700' : 'bg-teal-50 border-teal-200 text-teal-700'}`}>
+          {error || message}
+        </div>
+      )}
+
+      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-5 items-start">
+        <div className="app-card p-5">
+          <h2 className="text-lg font-bold text-slate-950">Add local church</h2>
+          <p className="text-sm text-slate-500 mt-1">These names appear in transaction filters and consolidated reports.</p>
+          <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Church name</span>
+              <input type="text" className="app-field mt-1.5" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Description</span>
+              <input type="text" className="app-field mt-1.5" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </label>
+            <button type="submit" className="app-primary-button w-full" disabled={loading}>
               {loading ? 'Adding...' : 'Add Local Church'}
             </button>
-            {error && <p className="text-red-500 mt-2">{error}</p>}
-            {message && <p className="text-green-600 mt-2">{message}</p>}
           </form>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">Registered Churches ({churches.length})</h2>
+        <div className="app-card overflow-hidden">
+          <div className="p-5 border-b border-slate-200">
+            <h2 className="text-lg font-bold text-slate-950">Registered Churches</h2>
+            <p className="text-sm text-slate-500 mt-1">Deactivate a church to hide it from new records.</p>
           </div>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gradient-to-r from-teal-500 to-teal-600">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {churches.length === 0 && (
-                <tr><td colSpan="4" className="px-6 py-4 text-sm text-gray-500">No local churches yet.</td></tr>
-              )}
-              {churches.map((c) => (
-                <tr key={c._id} className="hover:bg-teal-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{c.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{c.description || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs ${c.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
-                      {c.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => toggleActive(c._id)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      {c.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                  </td>
+          <div className="overflow-x-auto app-scrollbar">
+            <table className="app-table min-w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="px-5 py-3 text-left">Name</th>
+                  <th className="px-5 py-3 text-left">Description</th>
+                  <th className="px-5 py-3 text-left">Status</th>
+                  <th className="px-5 py-3 text-left">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {churches.map((church) => (
+                  <tr key={church._id} className="hover:bg-slate-50">
+                    <td className="px-5 py-4 whitespace-nowrap font-bold text-slate-900">{church.name}</td>
+                    <td className="px-5 py-4 text-slate-600">{church.description || '-'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className={`app-chip ${church.isActive ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-600'}`}>
+                        {church.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <button onClick={() => toggleActive(church._id)} className="font-bold text-teal-700 hover:text-teal-900">
+                        {church.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {churches.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="px-5 py-12 text-center text-slate-500">No local churches yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

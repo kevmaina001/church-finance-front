@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import API from '../utils/apiConfig';
 
 const UserManagement = () => {
@@ -11,7 +11,7 @@ const UserManagement = () => {
     try {
       setIsLoading(true);
       const response = await API.get('/api/users');
-      setUsers(response.data);
+      setUsers(response.data || []);
       setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch users.');
@@ -24,12 +24,12 @@ const UserManagement = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleInputChange = (event) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
-  const handleInviteUser = async (e) => {
-    e.preventDefault();
+  const handleInviteUser = async (event) => {
+    event.preventDefault();
     if (!formData.name || !formData.email || !formData.password || !formData.role) {
       setError('All fields are required.');
       return;
@@ -37,99 +37,106 @@ const UserManagement = () => {
     try {
       await API.post('/api/users/invite', formData);
       setFormData({ name: '', email: '', password: '', role: 'Special User' });
-      fetchUsers(); // Refresh the user list
+      fetchUsers();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to invite user.');
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await API.delete(`/api/users/${userId}`);
-        fetchUsers(); // Refresh the user list
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to delete user.');
-      }
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    try {
+      await API.delete(`/api/users/${userId}`);
+      fetchUsers();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete user.');
     }
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">User Management</h1>
-      
-      {error && <p className="text-red-500 bg-red-100 p-3 rounded mb-4">{error}</p>}
+    <div className="app-page space-y-6">
+      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-teal-700">Administration</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Users</h1>
+          <p className="text-sm text-slate-600 mt-2">Invite finance users and manage access to the workspace.</p>
+        </div>
+        <div className="app-muted-panel px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-500">Current users</p>
+          <p className="text-xl font-bold text-slate-950">{users.length}</p>
+        </div>
+      </section>
 
-      {/* Invite User Form */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 className="text-xl font-semibold mb-4">Invite New User</h2>
-        <form onSubmit={handleInviteUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Name"
-            value={formData.name}
-            onChange={handleInputChange}
-            className="p-2 border rounded"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="p-2 border rounded"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Temporary Password"
-            value={formData.password}
-            onChange={handleInputChange}
-            className="p-2 border rounded"
-          />
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleInputChange}
-            className="p-2 border rounded"
-          >
-            <option value="Special User">Special User</option>
-            <option value="Member">Member</option>
-          </select>
-          <button type="submit" className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 md:col-span-2">
-            Invite User
-          </button>
-        </form>
-      </div>
+      {error && <div className="rounded-xl border p-3 text-sm bg-red-50 border-red-200 text-red-700">{error}</div>}
 
-      {/* Users List */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Current Users</h2>
-        {isLoading ? (
-          <p>Loading users...</p>
-        ) : (
-          <ul className="space-y-4">
-            {users.map((user) => (
-              <li key={user._id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-3 border rounded">
-                <div>
-                  <p className="font-bold">{user.name}</p>
-                  <p className="text-sm text-gray-600">{user.email}</p>
-                  <p className="text-sm text-gray-500">Role: {user.role}</p>
-                </div>
-                <button
-                  onClick={() => handleDeleteUser(user._id)}
-                  className="mt-2 md:mt-0 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
-                >
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-5 items-start">
+        <div className="app-card p-5">
+          <h2 className="text-lg font-bold text-slate-950">Invite user</h2>
+          <p className="text-sm text-slate-500 mt-1">Create a user with a temporary password.</p>
+          <form onSubmit={handleInviteUser} className="space-y-4 mt-5">
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Name</span>
+              <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="app-field mt-1.5" />
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Email</span>
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="app-field mt-1.5" />
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Temporary password</span>
+              <input type="password" name="password" value={formData.password} onChange={handleInputChange} className="app-field mt-1.5" />
+            </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Role</span>
+              <select name="role" value={formData.role} onChange={handleInputChange} className="app-field mt-1.5">
+                <option value="Special User">Special User</option>
+                <option value="Member">Member</option>
+              </select>
+            </label>
+            <button type="submit" className="app-primary-button w-full">Invite User</button>
+          </form>
+        </div>
+
+        <div className="app-card overflow-hidden">
+          <div className="p-5 border-b border-slate-200">
+            <h2 className="text-lg font-bold text-slate-950">Current Users</h2>
+            <p className="text-sm text-slate-500 mt-1">{isLoading ? 'Loading users...' : 'People with workspace access.'}</p>
+          </div>
+          <div className="overflow-x-auto app-scrollbar">
+            <table className="app-table min-w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="px-5 py-3 text-left">Name</th>
+                  <th className="px-5 py-3 text-left">Email</th>
+                  <th className="px-5 py-3 text-left">Role</th>
+                  <th className="px-5 py-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user._id} className="hover:bg-slate-50">
+                    <td className="px-5 py-4 whitespace-nowrap font-bold text-slate-900">{user.name}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-600">{user.email}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className="app-chip bg-slate-100 text-slate-700">{user.role}</span>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <button onClick={() => handleDeleteUser(user._id)} className="font-bold text-red-700 hover:text-red-900">Delete</button>
+                    </td>
+                  </tr>
+                ))}
+                {!isLoading && users.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="px-5 py-12 text-center text-slate-500">No users found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
 
-export default UserManagement; 
+export default UserManagement;

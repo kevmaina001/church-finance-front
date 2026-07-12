@@ -42,46 +42,47 @@ const SelectContext = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-700 to-indigo-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 sm:p-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center">Choose where to work</h1>
-        <p className="text-center text-gray-500 mt-2 mb-6">
-          {parishName} &mdash; select a local church to work on its book, or the whole parish for the consolidated view.
-        </p>
+    <div className="min-h-screen bg-[#f6f8fb] flex items-center justify-center p-4">
+      <div className="app-surface rounded-2xl w-full max-w-4xl p-6 sm:p-8">
+        <div className="text-center max-w-2xl mx-auto">
+          <p className="text-sm font-semibold text-teal-700">{parishName}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Choose where to work</h1>
+          <p className="text-sm text-slate-600 mt-3 mb-6">
+            Select a local church to work on its book, or choose the whole parish for a consolidated view.
+          </p>
+        </div>
 
         {loading ? (
-          <p className="text-center text-gray-500 py-10">Loading churches...</p>
+          <p className="text-center text-slate-500 py-10">Loading churches...</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Parish (consolidated) */}
             <button
               onClick={() => choose(PARISH_CONTEXT)}
-              className="flex items-center gap-4 p-5 rounded-xl border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-500 hover:shadow-md transition text-left sm:col-span-2"
+              className="flex items-center gap-4 p-5 rounded-2xl border border-slate-200 bg-slate-950 text-white hover:shadow-lg transition text-left sm:col-span-2"
             >
-              <FaLayerGroup className="text-3xl text-indigo-600 flex-shrink-0" />
+              <FaLayerGroup className="text-3xl text-teal-200 flex-shrink-0" />
               <div>
-                <div className="font-semibold text-gray-800">Whole Parish (Consolidated)</div>
-                <div className="text-sm text-gray-500">See and manage all local churches combined.</div>
+                <div className="font-bold">Whole Parish</div>
+                <div className="text-sm text-slate-300">See and manage all local churches combined.</div>
               </div>
             </button>
 
-            {/* Each local church */}
             {churches.map((c) => (
               <button
                 key={c._id}
                 onClick={() => choose({ id: c._id, name: c.name })}
-                className="flex items-center gap-4 p-5 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-500 hover:shadow-md transition text-left"
+                className="flex items-center gap-4 p-5 rounded-2xl border border-slate-200 bg-white hover:border-teal-300 hover:shadow-md transition text-left"
               >
-                <FaChurch className="text-3xl text-teal-600 flex-shrink-0" />
+                <FaChurch className="text-3xl text-teal-700 flex-shrink-0" />
                 <div>
-                  <div className="font-semibold text-gray-800">{c.name}</div>
-                  <div className="text-sm text-gray-500">Work on this church's book only.</div>
+                  <div className="font-bold text-slate-950">{c.name}</div>
+                  <div className="text-sm text-slate-500">Work on this church's book only.</div>
                 </div>
               </button>
             ))}
 
             {churches.length === 0 && (
-              <div className="sm:col-span-2 text-center text-gray-500 text-sm">
+              <div className="sm:col-span-2 text-center text-slate-500 text-sm">
                 No local churches yet. You can still work at the parish level, or add churches under
                 <span className="font-medium"> Local Churches</span>.
               </div>

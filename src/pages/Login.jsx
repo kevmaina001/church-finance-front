@@ -41,17 +41,47 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4 text-center">Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10">
+      <div className="w-full max-w-5xl app-surface rounded-2xl overflow-hidden grid lg:grid-cols-[1fr_440px]">
+        <div className="hidden lg:flex flex-col justify-between bg-slate-950 text-white p-10">
+          <div>
+            <div className="h-12 w-12 rounded-xl bg-teal-500/15 border border-teal-300/20 flex items-center justify-center text-teal-200 font-black text-xl">
+              CF
+            </div>
+            <h1 className="text-4xl font-bold mt-8">Church Finance</h1>
+            <p className="text-slate-300 mt-4 max-w-md">
+              Manage income, expenditure, reports, and parish financial visibility from one focused workspace.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="font-bold text-teal-200">Income</p>
+              <p className="text-slate-400 mt-1">Track giving and sources</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="font-bold text-teal-200">Reports</p>
+              <p className="text-slate-400 mt-1">Export clear summaries</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="font-bold text-teal-200">Controls</p>
+              <p className="text-slate-400 mt-1">Manage users and context</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 sm:p-10">
+          <div className="mb-8">
+            <p className="text-sm font-semibold text-teal-700">Welcome back</p>
+            <h2 className="text-3xl font-bold text-slate-950 mt-1">Sign in</h2>
+            <p className="text-sm text-slate-500 mt-2">Use your account credentials to continue.</p>
+          </div>
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4 text-sm">
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-semibold text-slate-700">
               Email
             </label>
             <input
@@ -59,12 +89,12 @@ const Login = () => {
               placeholder="Enter your email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="p-2 border rounded w-full mt-1"
+              className="px-3 py-2.5 border border-slate-300 rounded-lg w-full mt-1.5 bg-white text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-semibold text-slate-700">
               Password
             </label>
             <input
@@ -72,29 +102,30 @@ const Login = () => {
               placeholder="Enter your password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="p-2 border rounded w-full mt-1"
+              className="px-3 py-2.5 border border-slate-300 rounded-lg w-full mt-1.5 bg-white text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            className="w-full bg-teal-600 text-white py-2.5 px-4 rounded-lg hover:bg-teal-700 disabled:opacity-70 disabled:cursor-not-allowed font-semibold shadow-sm transition"
             disabled={loading} // Disable button while loading
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <p className="text-center mt-4">
-          <a href="/forgot-password" className="text-blue-600 hover:underline">
+        <p className="text-center mt-5 text-sm">
+          <a href="/forgot-password" className="text-teal-700 font-semibold hover:text-teal-800">
             Forgot your password?
           </a>
         </p>
-        <p className="text-center mt-2">
+        <p className="text-center mt-2 text-sm text-slate-600">
           Don't have an account?{' '}
-          <a href="/register" className="text-blue-600 hover:underline">
+          <a href="/register" className="text-teal-700 font-semibold hover:text-teal-800">
             Register here
           </a>
         </p>
+        </div>
       </div>
     </div>
   );

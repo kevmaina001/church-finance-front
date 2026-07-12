@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation, NavLink } from 'react-router-dom';
-import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChevronDown, FaChartBar, FaBook, FaTimes, FaBars, FaTachometerAlt, FaMoneyBillWave, FaListAlt, FaUsers, FaChurch } from 'react-icons/fa';
-import API from '../utils/apiConfig';
+import { useNavigate, NavLink } from 'react-router-dom';
+import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChartBar, FaBook, FaTimes, FaBars, FaUsers, FaChurch } from 'react-icons/fa';
 
 const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(true); // Sidebar toggle state
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // For overlay sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   const user = JSON.parse(localStorage.getItem('user')) || {};
   const tenant = JSON.parse(localStorage.getItem('tenant')) || {};
@@ -22,7 +19,6 @@ const Sidebar = () => {
       setIsMobile(mobile);
       if (!mobile) {
         setSidebarOpen(false);
-        setCollapsed(false); // Ensure sidebar is expanded on desktop
       }
     };
     window.addEventListener('resize', handleResize);
@@ -53,7 +49,7 @@ const Sidebar = () => {
     { path: '/app/revenue-sources', label: 'Revenue Sources', icon: <FaClipboardList /> },
     { path: '/app/local-churches', label: 'Local Churches', icon: <FaChurch /> },
     { path: '/app/visualization', label: 'Visuals', icon: <FaChartBar /> },
-    { path: '/app/accounting', label: 'Accounting', icon: <FaBook /> },
+    { path: '/app/accounting', label: 'Accounting Reports', icon: <FaChartBar /> },
     { path: '/app/accounts', label: 'Accounts', icon: <FaBook /> },
     { path: '/app/journal-entries', label: 'Journal', icon: <FaClipboardList /> },
   ];
@@ -69,29 +65,29 @@ const Sidebar = () => {
     <>
       {/* Mobile Navbar with Hamburger Button */}
       {isMobile && !sidebarOpen && (
-        <div className="fixed top-0 left-0 w-full h-16 bg-white shadow flex items-center px-4 z-50">
+        <div className="fixed top-0 left-0 w-full h-16 bg-white/95 backdrop-blur border-b border-slate-200 flex items-center px-4 z-50">
           <button
             onClick={toggleSidebar}
-            className="text-teal-700 hover:text-teal-500 rounded-full p-2 focus:outline-none transition duration-300"
+            className="text-slate-700 hover:text-teal-700 rounded-lg p-2 transition duration-200"
             aria-label="Open Sidebar"
           >
             <FaBars size={24} />
           </button>
           <div className="flex-1 flex justify-center">
-            <span className="font-bold text-lg text-teal-700">ACK Kamune</span>
+            <span className="font-bold text-lg text-slate-900 truncate px-4">{tenantName}</span>
           </div>
         </div>
       )}
       {/* Backdrop for mobile sidebar */}
       {isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40"
+          className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-40"
           onClick={closeSidebar}
         />
       )}
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-teal-700 to-indigo-900 z-50 text-white shadow-lg transform transition-transform duration-300
+        className={`fixed top-0 left-0 h-full w-72 bg-white z-50 text-slate-900 border-r border-slate-200 shadow-[12px_0_40px_rgba(15,23,42,0.04)] transform transition-transform duration-300
           ${isMobile ? (sidebarOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
         `}
         style={{ minHeight: '100vh' }}
@@ -99,7 +95,7 @@ const Sidebar = () => {
         {/* Close button for mobile */}
         {isMobile && (
           <button
-            className="absolute top-3 right-3 text-white text-2xl z-50"
+            className="absolute top-3 right-3 text-slate-500 hover:text-slate-900 text-2xl z-50"
             onClick={closeSidebar}
             aria-label="Close Sidebar"
           >
@@ -107,17 +103,25 @@ const Sidebar = () => {
           </button>
         )}
         {/* Logo Section */}
-        <div className="flex items-center justify-center py-6 border-b border-indigo-700">
-          <h1 className="text-2xl font-extrabold tracking-wide">{tenantName}</h1>
+        <div className="px-5 py-5 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700">
+              <FaChurch />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold truncate text-slate-950">{tenantName}</h1>
+              <p className="text-xs text-slate-500">Finance workspace</p>
+            </div>
+          </div>
         </div>
-        {/* User Info Section */}
-        <div className="flex items-center p-4 border-b border-indigo-700">
-          <FaUserCircle className="text-4xl" />
-          <div className="ml-3">
-            <h3 className="font-semibold text-lg">{userName}</h3>
+        <div className="flex items-center p-4 border-b border-slate-200">
+          <FaUserCircle className="text-4xl text-slate-400" />
+          <div className="ml-3 min-w-0">
+            <h3 className="font-semibold text-base truncate">{userName}</h3>
+            {userRole && <p className="text-xs text-slate-500">{userRole}</p>}
             <button
               onClick={handleLogout}
-              className="text-sm text-teal-300 hover:text-teal-500 flex items-center space-x-1 mt-2"
+              className="text-sm text-teal-700 hover:text-teal-900 flex items-center gap-1 mt-2 transition"
             >
               <FaSignOutAlt />
               <span>Logout</span>
@@ -125,45 +129,41 @@ const Sidebar = () => {
           </div>
         </div>
         {/* Active working context (local church / parish) */}
-        <div className="px-4 py-3 border-b border-indigo-700 bg-indigo-800 bg-opacity-40">
-          <div className="text-xs uppercase tracking-wide text-teal-300">Working on</div>
+        <div className="mx-4 my-4 px-3 py-3 rounded-xl border border-slate-200 bg-slate-50">
+          <div className="text-xs uppercase text-slate-500 font-semibold">Working on</div>
           <div className="flex items-center justify-between mt-1">
             <span className="font-semibold text-sm flex items-center gap-2 truncate">
-              <FaChurch className="flex-shrink-0" />
+              <FaChurch className="flex-shrink-0 text-teal-700" />
               <span className="truncate">{activeChurch?.name || 'No context selected'}</span>
             </span>
             <button
               onClick={() => { navigate('/select-context'); if (isMobile) closeSidebar(); }}
-              className="text-xs text-teal-300 hover:text-white underline flex-shrink-0 ml-2"
+              className="text-xs text-teal-700 hover:text-teal-900 flex-shrink-0 ml-2 font-bold"
             >
               Switch
             </button>
           </div>
         </div>
         {/* Navigation Links */}
-        <nav className="flex flex-col flex-grow space-y-2 p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+        <nav className="flex flex-col flex-grow gap-1 px-3 pb-4 overflow-y-auto app-scrollbar" style={{ maxHeight: 'calc(100vh - 260px)' }}>
           {menuItems.map((item) => (
-            <Link
+            <NavLink
               key={item.path}
               to={item.path}
-              className={`flex items-center space-x-3 py-3 px-4 rounded-lg ${
-                location.pathname === item.path
-                  ? 'bg-teal-600 shadow-lg'
-                  : 'hover:bg-teal-500 hover:shadow-md'
-              } transition-all duration-200`}
+              className={({ isActive }) => `flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'bg-slate-950 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+              }`}
               onClick={() => { if (isMobile) closeSidebar(); }}
             >
-              {item.icon}
-              <span className="font-medium">{item.label}</span>
-            </Link>
+              <span className="text-base">{item.icon}</span>
+              <span className="truncate">{item.label}</span>
+            </NavLink>
           ))}
-          <NavLink to="/app/accounting" className={({ isActive }) => isActive ? "bg-gray-700 block py-2 px-4" : "block py-2 px-4 hover:bg-gray-700"}>
-            <FaChartBar className="inline-block mr-2" /> Accounting Reports
-          </NavLink>
         </nav>
-        {/* Footer Section */}
-        <div className="p-4 border-t border-indigo-700 mt-auto">
-          <p className="text-sm text-teal-300 text-center">
+        <div className="p-4 border-t border-slate-200 mt-auto">
+          <p className="text-xs text-slate-500 text-center">
             Financial Management System
           </p>
         </div>

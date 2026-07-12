@@ -13,13 +13,11 @@ const MainLayout = () => {
   }, [navigate]);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar Navigation */}
+    <div className="flex min-h-screen bg-[#f6f8fb] text-slate-900">
       <Sidebar />
 
-      {/* Main Content */}
       <main className="flex-1 w-full overflow-x-hidden flex flex-col">
-        <div className="flex-1 w-full ml-0 md:ml-64 w-full md:w-[calc(100vw-16rem)] px-4 py-6 pt-16">
+        <div className="flex-1 w-full ml-0 md:ml-72 md:w-[calc(100vw-18rem)] px-4 sm:px-6 xl:px-8 py-6 pt-20 md:pt-6">
           <Outlet />
         </div>
         <Footer />
