@@ -63,7 +63,9 @@ const Income = () => {
       const response = await API.get('/api/accounts', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setAccounts(response.data.accounts.filter(a => a.isActive && a.type === 'asset'));
+      // Only cash/bank accounts (chart convention: 1000-1099) belong in the money dropdown,
+      // not other assets like Receivables/Equipment/Furniture.
+      setAccounts(response.data.accounts.filter(a => a.isActive && a.type === 'asset' && Number(a.code) >= 1000 && Number(a.code) <= 1099));
     } catch (error) {
       console.error('Error fetching accounts:', error.response?.data?.message || error.message);
     }
