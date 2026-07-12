@@ -5,12 +5,15 @@ import API from '../utils/apiConfig';
 const Expenditure = () => {
   const [expenditures, setExpenditures] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [localChurches, setLocalChurches] = useState([]);
+  const [churchFilter, setChurchFilter] = useState('');
   const [form, setForm] = useState({
     votehead: '',
     amount: '',
     description: '',
     year: new Date().getFullYear(),
     assetAccount: '',
+    localChurch: '',
     date: new Date().toISOString().split('T')[0],
   });
   const [editId, setEditId] = useState(null);
@@ -21,15 +24,28 @@ const Expenditure = () => {
   const [voteheads, setVoteheads] = useState([]);
   const navigate = useNavigate();
 
-  const fetchExpenditures = async () => {
+  const fetchExpenditures = async (churchId = churchFilter) => {
     try {
-      const response = await API.get('/api/expenditures', {
+      const query = churchId ? `?localChurch=${churchId}` : '';
+      const response = await API.get(`/api/expenditures${query}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setExpenditures(response.data.expenditures);
     } catch (error) {
       if (error.response?.status === 401) navigate('/login');
       console.error('Error fetching expenditures:', error.response?.data?.message);
+    }
+  };
+
+  const fetchLocalChurches = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await API.get('/api/local-churches', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLocalChurches((response.data.localChurches || []).filter((c) => c.isActive));
+    } catch (error) {
+      console.error('Error fetching local churches:', error.response?.data?.message || error.message);
     }
   };
 
@@ -95,7 +111,7 @@ const Expenditure = () => {
         });
       }
 
-      setForm({ votehead: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '', date: new Date().toISOString().split('T')[0] });
+      setForm({ votehead: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '', localChurch: '', date: new Date().toISOString().split('T')[0] });
       fetchExpenditures();
     } catch (error) {
       console.error('Error saving expenditure:', error.response?.data?.message || error.message);
@@ -142,6 +158,7 @@ const Expenditure = () => {
     fetchAccounts();
     fetchUserName();
     fetchVoteheads();
+    fetchLocalChurches();
   }, [navigate]);
 
   const groupedExpenditures = groupExpendituresByMonth();
@@ -182,6 +199,17 @@ const Expenditure = () => {
                   ))}
                 </select>
 
+                <select
+                  value={form.localChurch}
+                  onChange={(e) => setForm({ ...form, localChurch: e.target.value })}
+                  className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">Parish (general)</option>
+                  {localChurches.map((church) => (
+                    <option key={church._id} value={church._id}>{church.name}</option>
+                  ))}
+                </select>
+
                 <input
                   type="number"
                   placeholder="Amount"
@@ -211,8 +239,18 @@ const Expenditure = () => {
 
           {/* Table Section - Scrollable */}
           <div className="bg-white rounded-lg shadow-md">
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <h2 className="text-xl font-semibold text-gray-800">Expenditure Records</h2>
+              <select
+                value={churchFilter}
+                onChange={(e) => { setChurchFilter(e.target.value); fetchExpenditures(e.target.value); }}
+                className="p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">All churches (parish total)</option>
+                {localChurches.map((church) => (
+                  <option key={church._id} value={church._id}>{church.name}</option>
+                ))}
+              </select>
             </div>
             <div className="h-[calc(100vh-400px)] overflow-y-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -220,6 +258,7 @@ const Expenditure = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Votehead</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Local Church</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Amount</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Description</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
@@ -233,6 +272,9 @@ const Expenditure = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {expenditure.votehead?.name || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {expenditure.localChurch?.name || 'Parish (general)'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
                         KES {expenditure.amount.toLocaleString()}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation, NavLink } from 'react-router-dom';
-import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChevronDown, FaChartBar, FaBook, FaTimes, FaBars, FaTachometerAlt, FaMoneyBillWave, FaListAlt, FaUsers } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChevronDown, FaChartBar, FaBook, FaTimes, FaBars, FaTachometerAlt, FaMoneyBillWave, FaListAlt, FaUsers, FaChurch } from 'react-icons/fa';
 import API from '../utils/apiConfig';
 
 const Sidebar = () => {
@@ -50,6 +50,7 @@ const Sidebar = () => {
     { path: '/app/reports', label: 'Reports', icon: <FaClipboardList /> },
     { path: '/app/voteheads', label: 'Voteheads', icon: <FaClipboardList /> },
     { path: '/app/revenue-sources', label: 'Revenue Sources', icon: <FaClipboardList /> },
+    { path: '/app/local-churches', label: 'Local Churches', icon: <FaChurch /> },
     { path: '/app/visualization', label: 'Visuals', icon: <FaChartBar /> },
     { path: '/app/accounting', label: 'Accounting', icon: <FaBook /> },
     { path: '/app/accounts', label: 'Accounts', icon: <FaBook /> },

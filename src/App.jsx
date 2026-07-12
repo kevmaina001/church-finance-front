@@ -16,6 +16,7 @@ import AccountManagement from './pages/AccountManagement';
 import JournalEntries from './pages/JournalEntries';
 import RevenueSourceManagement from './pages/RevenueSourceManagement';
 import UserManagement from './pages/UserManagement';
+import LocalChurchManagement from './pages/LocalChurchManagement';
 
 // A component to handle the root URL redirect logic
 const RootRedirect = () => {
@@ -51,6 +52,7 @@ const App = () => {
           <Route path="accounts" element={<AccountManagement />} />
           <Route path="journal-entries" element={<JournalEntries />} />
           <Route path="revenue-sources" element={<RevenueSourceManagement />} />
+          <Route path="local-churches" element={<LocalChurchManagement />} />
           <Route path="user-management" element={<UserManagement />} />
         </Route>
       </Routes>

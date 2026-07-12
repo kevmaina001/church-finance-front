@@ -5,12 +5,15 @@ const Income = () => {
   const [incomes, setIncomes] = useState([]);
   const [revenueSources, setRevenueSources] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [localChurches, setLocalChurches] = useState([]);
+  const [churchFilter, setChurchFilter] = useState('');
   const [form, setForm] = useState({
     revenueSource: '',
     amount: '',
     description: '',
     year: new Date().getFullYear(),
     assetAccount: '',
+    localChurch: '',
   });
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState('');
@@ -18,14 +21,27 @@ const Income = () => {
   const [collapsedMonths, setCollapsedMonths] = useState({});
   const [userName, setUserName] = useState('');
 
-  const fetchIncomes = async () => {
+  const fetchIncomes = async (churchId = churchFilter) => {
     try {
-      const response = await API.get('/api/incomes', {
+      const query = churchId ? `?localChurch=${churchId}` : '';
+      const response = await API.get(`/api/incomes${query}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setIncomes(response.data.incomes);
     } catch (error) {
       console.error('Error fetching incomes:', error.response?.data?.message);
+    }
+  };
+
+  const fetchLocalChurches = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await API.get('/api/local-churches', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLocalChurches((response.data.localChurches || []).filter((c) => c.isActive));
+    } catch (error) {
+      console.error('Error fetching local churches:', error.response?.data?.message || error.message);
     }
   };
 
@@ -89,7 +105,7 @@ const Income = () => {
         });
       }
 
-      setForm({ revenueSource: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '' });
+      setForm({ revenueSource: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '', localChurch: '' });
       fetchIncomes();
     } catch (error) {
       const errMsg = error.response?.data?.message || error.message;
@@ -132,6 +148,7 @@ const Income = () => {
     fetchRevenueSources();
     fetchAccounts();
     fetchUserName();
+    fetchLocalChurches();
   }, []);
 
   const groupedIncomes = groupIncomesByMonth();
@@ -172,6 +189,17 @@ const Income = () => {
                   ))}
                 </select>
 
+                <select
+                  value={form.localChurch}
+                  onChange={(e) => setForm({ ...form, localChurch: e.target.value })}
+                  className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Parish (general)</option>
+                  {localChurches.map((church) => (
+                    <option key={church._id} value={church._id}>{church.name}</option>
+                  ))}
+                </select>
+
                 <input
                   type="number"
                   placeholder="Amount"
@@ -201,8 +229,18 @@ const Income = () => {
 
           {/* Table Section - Scrollable */}
           <div className="bg-white rounded-lg shadow-md">
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <h2 className="text-xl font-semibold text-gray-800">Income Records</h2>
+              <select
+                value={churchFilter}
+                onChange={(e) => { setChurchFilter(e.target.value); fetchIncomes(e.target.value); }}
+                className="p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All churches (parish total)</option>
+                {localChurches.map((church) => (
+                  <option key={church._id} value={church._id}>{church.name}</option>
+                ))}
+              </select>
             </div>
             <div className="h-[calc(100vh-400px)] overflow-y-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -210,6 +248,7 @@ const Income = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Revenue Source</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Local Church</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Amount</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Description</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
@@ -223,6 +262,9 @@ const Income = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {income.revenueSource?.name || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {income.localChurch?.name || 'Parish (general)'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                         KES {income.amount.toLocaleString()}
