@@ -21,6 +21,9 @@ const dateSupported = {
 };
 
 const AccountingReports = () => {
+  // Active working context: a specific local church, or the whole parish.
+  const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
+  const scopedChurchId = activeChurch && activeChurch.id && activeChurch.id !== 'parish' ? activeChurch.id : '';
   const [reportType, setReportType] = useState('trial-balance');
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
@@ -61,6 +64,7 @@ const AccountingReports = () => {
         if (startDate) params.startDate = startDate;
         if (endDate) params.endDate = endDate;
       }
+      if (scopedChurchId) params.localChurch = scopedChurchId;
       const response = await API.get(endpoint, {
         params,
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -248,6 +252,18 @@ const AccountingReports = () => {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div className={`p-4 rounded ${reportData.balanced ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+          <div className="flex justify-between text-sm">
+            <span>Total Assets</span><span>{totalAssets.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span>Total Liabilities + Equity</span><span>{(totalLiabilities + totalEquity).toFixed(2)}</span>
+          </div>
+          <div className="mt-2 font-semibold">
+            {reportData.balanced ? '✓ Balanced' : `✗ Out of balance by ${reportData.difference}`}
+          </div>
         </div>
       </div>
     );
@@ -444,7 +460,10 @@ const AccountingReports = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen mt-16 sm:mt-0">
-      <h1 className="text-3xl font-bold text-center mb-6">Accounting Reports</h1>
+      <h1 className="text-3xl font-bold text-center mb-1">Accounting Reports</h1>
+      <p className="text-center text-sm text-gray-500 mb-6">
+        Showing: <span className="font-medium">{scopedChurchId ? activeChurch.name : 'Whole Parish (Consolidated)'}</span>
+      </p>
 
       <div className="mb-6 bg-white p-4 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
