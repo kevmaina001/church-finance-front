@@ -31,6 +31,9 @@ import {
 
 const Report = () => {
   const navigate = useNavigate();
+  // Active working context: a specific local church, or the whole parish.
+  const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
+  const scopedChurchId = activeChurch && activeChurch.id && activeChurch.id !== 'parish' ? activeChurch.id : '';
   const [filterType, setFilterType] = useState('income');
   const [combinedFilterType, setCombinedFilterType] = useState('income');
   const [data, setData] = useState([]);
@@ -48,6 +51,7 @@ const Report = () => {
           type: filterType,
           startDate,
           endDate,
+          ...(scopedChurchId && { localChurch: scopedChurchId }),
         },
       });
       setData(response.data.records);
@@ -66,6 +70,7 @@ const Report = () => {
           type: combinedFilterType,
           startDate,
           endDate,
+          ...(scopedChurchId && { localChurch: scopedChurchId }),
         },
       });
       setCombinedData(response.data.aggregatedData);
@@ -95,6 +100,7 @@ const Report = () => {
           format,
           startDate,
           endDate,
+          ...(scopedChurchId && { localChurch: scopedChurchId }),
         },
         responseType: 'blob',
       });
@@ -114,7 +120,10 @@ const Report = () => {
   return (
     <div className="w-full px-2 md:px-0 md:max-w-4xl mx-auto mt-16 sm:mt-0">
       <div className="bg-white rounded-lg shadow p-4 md:p-8">
-        <h1 className="text-2xl font-bold text-blue-700 mb-4">Reports</h1>
+        <h1 className="text-2xl font-bold text-blue-700 mb-1">Reports</h1>
+        <p className="text-sm text-gray-500 mb-4">
+          Showing: <span className="font-medium">{scopedChurchId ? activeChurch.name : 'Whole Parish (Consolidated)'}</span>
+        </p>
         <div className="grid grid-cols-2 gap-2 mb-4">
           <Grid item xs={12} sm={6}>
             <Button

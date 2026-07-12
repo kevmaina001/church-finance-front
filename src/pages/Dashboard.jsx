@@ -18,6 +18,11 @@ import { Bar, Pie } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const Dashboard = () => {
+  // Active working context: a specific local church, or the whole parish.
+  const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
+  const scopedChurchId = activeChurch && activeChurch.id && activeChurch.id !== 'parish' ? activeChurch.id : '';
+  const churchQuery = scopedChurchId ? `?localChurch=${scopedChurchId}` : '';
+
   const [userName, setUserName] = useState('');
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenditure, setTotalExpenditure] = useState(0);
@@ -37,11 +42,11 @@ const Dashboard = () => {
   const fetchIncomeExpenditureSummary = async () => {
     try {
       // Fetch all incomes for the tenant
-      const incomeRes = await API.get('/api/incomes', {
+      const incomeRes = await API.get(`/api/incomes${churchQuery}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       // Fetch all expenditures for the tenant
-      const expenditureRes = await API.get('/api/expenditures', {
+      const expenditureRes = await API.get(`/api/expenditures${churchQuery}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       // Date range: current year
@@ -126,10 +131,10 @@ const Dashboard = () => {
 
   const fetchRecentTransactions = async () => {
     try {
-      const incomeRes = await API.get('/api/incomes', {
+      const incomeRes = await API.get(`/api/incomes${churchQuery}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      const expenditureRes = await API.get('/api/expenditures', {
+      const expenditureRes = await API.get(`/api/expenditures${churchQuery}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setRecentIncomes((incomeRes.data.incomes || []).slice(-5).reverse());
@@ -142,10 +147,10 @@ const Dashboard = () => {
   const fetchMonthlyTrends = async () => {
     try {
       // Fetch all incomes and expenditures
-      const incomeRes = await API.get('/api/incomes', {
+      const incomeRes = await API.get(`/api/incomes${churchQuery}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      const expenditureRes = await API.get('/api/expenditures', {
+      const expenditureRes = await API.get(`/api/expenditures${churchQuery}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       // Group by month
@@ -241,7 +246,12 @@ const Dashboard = () => {
       {/* Greeting and Quick Links */}
       <div className="bg-blue-50 p-2 sm:p-4 shadow-md">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-          <h1 className="text-xl sm:text-2xl font-bold text-blue-700 mb-2 md:mb-0 text-center md:text-left">Welcome, {userName}!</h1>
+          <div className="mb-2 md:mb-0 text-center md:text-left">
+            <h1 className="text-xl sm:text-2xl font-bold text-blue-700">Welcome, {userName}!</h1>
+            <p className="text-xs sm:text-sm text-gray-600">
+              Working on: <span className="font-semibold">{scopedChurchId ? activeChurch.name : 'Whole Parish (Consolidated)'}</span>
+            </p>
+          </div>
           <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:w-auto items-center justify-center">
             <button
               onClick={() => navigate('/app/income')}
