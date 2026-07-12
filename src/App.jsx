@@ -5,6 +5,8 @@ import Dashboard from './pages/Dashboard';
 import Income from './pages/Income';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import VoteheadManagement from './pages/VoteheadManagement';
 import Expenditure from './pages/Expenditure';
 import Report from './pages/Report';
@@ -33,6 +35,8 @@ const App = () => {
         {/* Public Pages */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Protected Pages with MainLayout as a wrapper, now under /app */}
         <Route path="/app" element={<MainLayout />}>

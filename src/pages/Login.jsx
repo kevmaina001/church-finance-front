@@ -84,6 +84,11 @@ const Login = () => {
           </button>
         </form>
         <p className="text-center mt-4">
+          <a href="/forgot-password" className="text-blue-600 hover:underline">
+            Forgot your password?
+          </a>
+        </p>
+        <p className="text-center mt-2">
           Don't have an account?{' '}
           <a href="/register" className="text-blue-600 hover:underline">
             Register here
