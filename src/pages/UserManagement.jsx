@@ -19,6 +19,8 @@ const UserManagement = () => {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', role: 'Member', localChurch: '' });
+  const [editId, setEditId] = useState(null);
+  const [editForm, setEditForm] = useState({ email: '', phone: '', password: '' });
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -90,6 +92,28 @@ const UserManagement = () => {
       fetchUsers();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update church.');
+    }
+  };
+
+  const startEdit = (user) => {
+    setEditId(user._id);
+    setEditForm({ email: user.email || '', phone: user.phone || '', password: '' });
+    setError('');
+    setNotice('');
+  };
+
+  const saveEdit = async (user) => {
+    setError('');
+    setNotice('');
+    try {
+      const body = { email: editForm.email, phone: editForm.phone };
+      if (editForm.password.trim()) body.password = editForm.password.trim();
+      await API.put(`/api/users/${user._id}`, body);
+      setEditId(null);
+      setNotice(`Updated ${user.name}${editForm.password.trim() ? ' (password set)' : ''}.`);
+      fetchUsers();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update user.');
     }
   };
 
@@ -173,7 +197,8 @@ const UserManagement = () => {
               <thead>
                 <tr>
                   <th className="px-5 py-3 text-left">Name</th>
-                  <th className="px-5 py-3 text-left">Login</th>
+                  <th className="px-5 py-3 text-left">Email</th>
+                  <th className="px-5 py-3 text-left">Phone</th>
                   <th className="px-5 py-3 text-left">Role</th>
                   <th className="px-5 py-3 text-left">Church</th>
                   <th className="px-5 py-3 text-left">Actions</th>
@@ -181,40 +206,72 @@ const UserManagement = () => {
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user._id} className="hover:bg-slate-50">
-                    <td className="px-5 py-4 whitespace-nowrap font-bold text-slate-900">{user.name}</td>
-                    <td className="px-5 py-4 whitespace-nowrap text-slate-600">{user.email || user.phone || '—'}</td>
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      <select
-                        value={ROLES.includes(user.role) ? user.role : 'Member'}
-                        onChange={(e) => handleChangeRole(user, e.target.value)}
-                        className="app-field text-sm py-1.5"
-                      >
-                        {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                    </td>
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      {SCOPED_ROLES.includes(user.role) ? (
+                  <React.Fragment key={user._id}>
+                    <tr className="hover:bg-slate-50">
+                      <td className="px-5 py-4 whitespace-nowrap font-bold text-slate-900">{user.name}</td>
+                      <td className="px-5 py-4 whitespace-nowrap text-slate-600">{user.email || '—'}</td>
+                      <td className="px-5 py-4 whitespace-nowrap text-slate-600">{user.phone || '—'}</td>
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <select
-                          value={user.localChurch?._id || user.localChurch || ''}
-                          onChange={(e) => handleChangeChurch(user, e.target.value)}
+                          value={ROLES.includes(user.role) ? user.role : 'Member'}
+                          onChange={(e) => handleChangeRole(user, e.target.value)}
                           className="app-field text-sm py-1.5"
                         >
-                          <option value="">Whole parish</option>
-                          {churches.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                          {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                         </select>
-                      ) : (
-                        <span className="text-slate-400">Parish-wide</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      <button onClick={() => handleDeleteUser(user._id)} className="font-bold text-red-700 hover:text-red-900">Delete</button>
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        {SCOPED_ROLES.includes(user.role) ? (
+                          <select
+                            value={user.localChurch?._id || user.localChurch || ''}
+                            onChange={(e) => handleChangeChurch(user, e.target.value)}
+                            className="app-field text-sm py-1.5"
+                          >
+                            <option value="">Whole parish</option>
+                            {churches.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                          </select>
+                        ) : (
+                          <span className="text-slate-400">Parish-wide</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <div className="flex gap-3">
+                          <button onClick={() => (editId === user._id ? setEditId(null) : startEdit(user))} className="font-bold text-teal-700 hover:text-teal-900">
+                            {editId === user._id ? 'Close' : 'Phone / Password'}
+                          </button>
+                          <button onClick={() => handleDeleteUser(user._id)} className="font-bold text-red-700 hover:text-red-900">Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                    {editId === user._id && (
+                      <tr className="bg-slate-50">
+                        <td colSpan="6" className="px-5 py-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                            <label className="block">
+                              <span className="text-xs font-bold text-slate-600">Email</span>
+                              <input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} className="app-field mt-1 text-sm" />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-bold text-slate-600">Phone (login)</span>
+                              <input type="tel" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} className="app-field mt-1 text-sm" placeholder="e.g. 0712345678" />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-bold text-slate-600">Set new password</span>
+                              <input type="text" value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} className="app-field mt-1 text-sm" placeholder="Leave blank to keep current" />
+                            </label>
+                            <div className="flex gap-2">
+                              <button onClick={() => saveEdit(user)} className="app-primary-button text-sm flex-1">Save</button>
+                              <button onClick={() => setEditId(null)} className="app-secondary-button text-sm">Cancel</button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
                 {!isLoading && users.length === 0 && (
                   <tr>
-                    <td colSpan="5" className="px-5 py-12 text-center text-slate-500">No users found.</td>
+                    <td colSpan="6" className="px-5 py-12 text-center text-slate-500">No users found.</td>
                   </tr>
                 )}
               </tbody>
