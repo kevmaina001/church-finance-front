@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChartBar, FaBook, FaTimes, FaBars, FaUsers, FaChurch } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChartBar, FaBook, FaTimes, FaBars, FaUsers, FaChurch, FaHandHoldingHeart } from 'react-icons/fa';
 
 const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -50,6 +50,7 @@ const Sidebar = () => {
     { path: '/app/local-churches', label: 'Local Churches', icon: <FaChurch /> },
     { path: '/app/members', label: 'Members', icon: <FaUsers /> },
     { path: '/app/budgets', label: 'Budgets', icon: <FaChartBar /> },
+    { path: '/app/funds', label: 'Funds', icon: <FaHandHoldingHeart /> },
     { path: '/app/visualization', label: 'Visuals', icon: <FaChartBar /> },
     { path: '/app/accounting', label: 'Accounting Reports', icon: <FaChartBar /> },
     { path: '/app/accounts', label: 'Accounts', icon: <FaBook /> },

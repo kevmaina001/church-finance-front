@@ -10,6 +10,7 @@ const Income = () => {
   const [accounts, setAccounts] = useState([]);
   const [localChurches, setLocalChurches] = useState([]);
   const [members, setMembers] = useState([]);
+  const [funds, setFunds] = useState([]);
   const [churchFilter, setChurchFilter] = useState(scopedChurchId);
   const [form, setForm] = useState({
     revenueSource: '',
@@ -19,6 +20,7 @@ const Income = () => {
     assetAccount: '',
     localChurch: scopedChurchId,
     member: '',
+    fund: '',
   });
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState('');
@@ -57,6 +59,18 @@ const Income = () => {
       setMembers((response.data.members || []).filter((m) => m.isActive));
     } catch (error) {
       console.error('Error fetching members:', error.response?.data?.message || error.message);
+    }
+  };
+
+  const fetchFunds = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await API.get('/api/funds', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setFunds((response.data.funds || []).filter((f) => f.isActive));
+    } catch (error) {
+      console.error('Error fetching funds:', error.response?.data?.message || error.message);
     }
   };
 
@@ -112,7 +126,7 @@ const Income = () => {
         });
       }
 
-      setForm({ revenueSource: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '', localChurch: scopedChurchId, member: '' });
+      setForm({ revenueSource: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '', localChurch: scopedChurchId, member: '', fund: '' });
       fetchIncomes();
     } catch (error) {
       const errMsg = error.response?.data?.message || error.message;
@@ -141,6 +155,7 @@ const Income = () => {
     fetchAccounts();
     fetchLocalChurches();
     fetchMembers();
+    fetchFunds();
   }, []);
 
   const grandTotal = incomes.reduce((sum, income) => sum + (income.amount || 0), 0);
@@ -201,6 +216,13 @@ const Income = () => {
               ))}
             </select>
 
+            <select value={form.fund} onChange={(e) => setForm({ ...form, fund: e.target.value })} className="app-field">
+              <option value="">General fund (unrestricted)</option>
+              {funds.map((f) => (
+                <option key={f._id} value={f._id}>{f.name}{f.type === 'restricted' ? ' (restricted)' : ''}</option>
+              ))}
+            </select>
+
             <input type="number" placeholder="Amount" className="app-field" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
             <input type="text" placeholder="Description" className="app-field" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
 
@@ -235,6 +257,7 @@ const Income = () => {
                   <th className="px-5 py-3 text-left">Revenue Source</th>
                   <th className="px-5 py-3 text-left">Local Church</th>
                   <th className="px-5 py-3 text-left">Member</th>
+                  <th className="px-5 py-3 text-left">Fund</th>
                   <th className="px-5 py-3 text-right">Amount</th>
                   <th className="px-5 py-3 text-left">Description</th>
                   <th className="px-5 py-3 text-left">Actions</th>
@@ -247,6 +270,7 @@ const Income = () => {
                     <td className="px-5 py-4 whitespace-nowrap text-slate-800 font-medium">{income.revenueSource?.name || 'N/A'}</td>
                     <td className="px-5 py-4 whitespace-nowrap text-slate-600">{income.localChurch?.name || 'Parish general'}</td>
                     <td className="px-5 py-4 whitespace-nowrap text-slate-600">{income.member?.name || '-'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-slate-600">{income.fund?.name || 'General'}</td>
                     <td className="px-5 py-4 whitespace-nowrap text-right font-bold text-teal-700">KES {income.amount.toLocaleString()}</td>
                     <td className="px-5 py-4 text-slate-600">{income.description || '-'}</td>
                     <td className="px-5 py-4 whitespace-nowrap">
@@ -258,7 +282,7 @@ const Income = () => {
                 ))}
                 {incomes.length === 0 && (
                   <tr>
-                    <td colSpan="7" className="px-5 py-12 text-center text-slate-500">No income records found.</td>
+                    <td colSpan="8" className="px-5 py-12 text-center text-slate-500">No income records found.</td>
                   </tr>
                 )}
               </tbody>
