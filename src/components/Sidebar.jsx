@@ -50,6 +50,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { path: '/app/dashboard', label: 'Dashboard', icon: <FaHome /> },
+    { path: '/app/daily-activity', label: 'Daily Activity', icon: <FaClipboardList /> },
     { path: '/app/income', label: 'Income', icon: <FaFileInvoiceDollar /> },
     { path: '/app/expenditure', label: 'Expenditure', icon: <FaChartPie /> },
     { path: '/app/reports', label: 'Reports', icon: <FaClipboardList /> },

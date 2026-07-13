@@ -21,6 +21,7 @@ import LocalChurchManagement from './pages/LocalChurchManagement';
 import MemberManagement from './pages/MemberManagement';
 import Budgets from './pages/Budgets';
 import FundManagement from './pages/FundManagement';
+import DailyActivity from './pages/DailyActivity';
 import SelectContext from './pages/SelectContext';
 
 // A component to handle the root URL redirect logic
@@ -51,6 +52,7 @@ const App = () => {
         <Route path="/app" element={<MainLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="daily-activity" element={<DailyActivity />} />
           <Route path="income" element={<Income />} />
           <Route path="expenditure" element={<Expenditure />} />
           <Route path="voteheads" element={<VoteheadManagement />} />
