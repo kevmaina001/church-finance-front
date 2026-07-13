@@ -25,12 +25,17 @@ const Register = () => {
     }
     try {
       const res = await API.post('/api/users/register', { name, email, password, tenantName });
-      localStorage.setItem('tenant', JSON.stringify(res.data.tenant));
-      setSuccess('Registration successful! You can now log in.');
+      const { token, user, tenant } = res.data;
+      // Auto sign-in and send straight to "Choose where to work".
+      if (token) localStorage.setItem('token', token);
+      if (user) localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('tenant', JSON.stringify(tenant));
+      localStorage.removeItem('activeChurch');
+      setSuccess('Registration successful! Taking you to choose where to work…');
       setError('');
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        navigate(token ? '/select-context' : '/login');
+      }, 1200);
     } catch (err) {
       setError(
         err.response?.data?.message ||

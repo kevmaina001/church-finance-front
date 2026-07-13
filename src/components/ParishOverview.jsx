@@ -224,11 +224,19 @@ const ParishOverview = () => {
             </div>
           </div>
 
-          {/* Parish Quota tracker */}
+          {/* Parish Quota tracker — remitted vs the annual target */}
           <div className="app-card overflow-hidden">
-            <div className="p-5 border-b border-slate-200">
-              <h3 className="text-lg font-bold text-slate-950">Parish Quota remitted</h3>
-              <p className="text-sm text-slate-500 mt-1">How much each church has paid toward the parish quota in {year}.</p>
+            <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <h3 className="text-lg font-bold text-slate-950">Parish Quota</h3>
+                <p className="text-sm text-slate-500 mt-1">Remitted vs the {year} target.</p>
+              </div>
+              {data?.quotaTarget > 0 && (
+                <div className="app-muted-panel px-4 py-2 text-sm">
+                  <span className="text-slate-500 font-semibold">Annual target: </span>
+                  <span className="font-bold text-slate-900">{kes(data.quotaTarget)}</span>
+                </div>
+              )}
             </div>
             {data?.quotaTracked ? (
               <div className="overflow-x-auto app-scrollbar">
@@ -236,19 +244,34 @@ const ParishOverview = () => {
                   <thead>
                     <tr>
                       <th className="px-5 py-3 text-left">Church</th>
-                      <th className="px-5 py-3 text-right">Quota remitted</th>
+                      <th className="px-5 py-3 text-right">Remitted</th>
+                      <th className="px-5 py-3 text-left w-48">Progress to target</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {churches.map((c) => (
-                      <tr key={c.id} className="hover:bg-slate-50">
-                        <td className="px-5 py-3 font-medium text-slate-900">{c.name}</td>
-                        <td className="px-5 py-3 text-right font-bold text-slate-800">{kes(c.quota)}</td>
-                      </tr>
-                    ))}
+                    {churches.map((c) => {
+                      const p = data.quotaTarget > 0 ? Math.round((c.quota / data.quotaTarget) * 100) : null;
+                      return (
+                        <tr key={c.id} className="hover:bg-slate-50">
+                          <td className="px-5 py-3 font-medium text-slate-900">{c.name}</td>
+                          <td className="px-5 py-3 text-right font-bold text-slate-800">{kes(c.quota)}</td>
+                          <td className="px-5 py-3">
+                            {p === null ? (
+                              <span className="text-xs text-slate-400">no target set</span>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Bar percent={p} color={p >= 100 ? 'bg-teal-500' : 'bg-amber-500'} />
+                                <span className="text-xs text-slate-500 w-10 text-right">{p}%</span>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                     <tr className="bg-slate-50">
-                      <td className="px-5 py-3 font-bold text-slate-900">Total</td>
+                      <td className="px-5 py-3 font-bold text-slate-900">Total remitted</td>
                       <td className="px-5 py-3 text-right font-bold text-slate-900">{kes(churches.reduce((s, c) => s + c.quota, 0))}</td>
+                      <td className="px-5 py-3" />
                     </tr>
                   </tbody>
                 </table>
