@@ -14,6 +14,12 @@ const Sidebar = () => {
   const { name: userName = 'Guest', role: userRole } = user;
   const { name: tenantName = 'Church Finance' } = tenant;
 
+  // When a specific local church is the active context, the header reads that church's
+  // name (with the parish as the subtitle); at parish/consolidated level it reads the parish.
+  const inLocalChurch = activeChurch && activeChurch.id && activeChurch.id !== 'parish';
+  const headerTitle = inLocalChurch ? activeChurch.name : tenantName;
+  const headerSubtitle = inLocalChurch ? tenantName : 'Finance workspace';
+
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
@@ -78,7 +84,7 @@ const Sidebar = () => {
             <FaBars size={24} />
           </button>
           <div className="flex-1 flex justify-center">
-            <span className="font-bold text-lg text-slate-900 truncate px-4">{tenantName}</span>
+            <span className="font-bold text-lg text-slate-900 truncate px-4">{headerTitle}</span>
           </div>
         </div>
       )}
@@ -113,8 +119,8 @@ const Sidebar = () => {
               <FaChurch />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg font-bold truncate text-slate-950">{tenantName}</h1>
-              <p className="text-xs text-slate-500">Finance workspace</p>
+              <h1 className="text-lg font-bold truncate text-slate-950">{headerTitle}</h1>
+              <p className="text-xs text-slate-500 truncate">{headerSubtitle}</p>
             </div>
           </div>
         </div>

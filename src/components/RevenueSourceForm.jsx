@@ -156,8 +156,8 @@ const RevenueSourceForm = () => {
               <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="app-field mt-1.5" required />
             </label>
             <label className="block">
-              <span className="text-sm font-bold text-slate-700">Description</span>
-              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="app-field mt-1.5 min-h-24" required />
+              <span className="text-sm font-bold text-slate-700">Description <span className="font-normal text-slate-400">(optional)</span></span>
+              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="app-field mt-1.5 min-h-24" />
             </label>
             <label className="block">
               <span className="text-sm font-bold text-slate-700">Revenue account</span>

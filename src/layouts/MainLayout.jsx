@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar'; // Sidebar replaces Navbar
 import Footer from '../components/Footer';
+import InstallPromptPopup from '../components/InstallPromptPopup';
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const MainLayout = () => {
         </div>
         <Footer />
       </main>
+      <InstallPromptPopup />
     </div>
   );
 };
