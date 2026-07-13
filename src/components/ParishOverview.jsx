@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import API from '../utils/apiConfig';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const kes = (n) => `KES ${Number(n || 0).toLocaleString()}`;
 
@@ -32,6 +38,45 @@ const ParishOverview = () => {
   const totals = data?.totals || { income: 0, expenditure: 0, net: 0, cash: 0 };
   const budget = data?.budget || { incomeBudget: 0, incomeActual: 0, expenseBudget: 0, expenseActual: 0 };
   const totalGiving = churches.reduce((s, c) => s + c.income, 0) + (data?.parishGeneral?.income || 0);
+  const monthly = data?.monthly || [];
+
+  const trendData = {
+    labels: monthly.map((m) => m.month),
+    datasets: [
+      {
+        label: 'Income',
+        data: monthly.map((m) => m.income),
+        borderColor: '#0f766e',
+        backgroundColor: 'rgba(15,118,110,0.12)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 3,
+      },
+      {
+        label: 'Expenditure',
+        data: monthly.map((m) => m.expenditure),
+        borderColor: '#ea580c',
+        backgroundColor: 'rgba(234,88,12,0.10)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 3,
+      },
+    ],
+  };
+  const trendOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', labels: { boxWidth: 12, usePointStyle: true } },
+      tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${kes(ctx.parsed.y)}` } },
+    },
+    scales: {
+      y: { beginAtZero: true, ticks: { callback: (v) => Number(v).toLocaleString() } },
+      x: { grid: { display: false } },
+    },
+  };
+  const hasTrend = monthly.some((m) => m.income || m.expenditure);
 
   const Kpi = ({ label, value, tone }) => (
     <div className="app-card app-kpi p-4">
@@ -109,6 +154,19 @@ const ParishOverview = () => {
               <div className="app-card p-6 text-center text-slate-500 md:col-span-2 xl:col-span-3">
                 No local churches yet. Add churches to see them broken down here.
               </div>
+            )}
+          </div>
+
+          {/* Monthly trend (parish-wide) */}
+          <div className="app-card p-5">
+            <h3 className="text-lg font-bold text-slate-950">Monthly trend</h3>
+            <p className="text-sm text-slate-500 mt-1 mb-4">Income vs expenditure across the parish, month by month in {year}.</p>
+            {hasTrend ? (
+              <div className="h-64 sm:h-72">
+                <Line data={trendData} options={trendOptions} />
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 py-8 text-center">No transactions recorded for {year} yet.</p>
             )}
           </div>
 
