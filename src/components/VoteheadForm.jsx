@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../utils/apiConfig';
+import { isParishLevel } from '../utils/permissions';
 
 const VoteheadForm = () => {
   const [form, setForm] = useState({ name: '', description: '', account: '', localChurch: '' });
@@ -119,11 +120,11 @@ const VoteheadForm = () => {
     }
   };
 
-  if (role !== 'Admin') {
+  if (!isParishLevel()) {
     return (
       <div className="app-page">
         <div className="app-card p-5 text-red-700 bg-red-50 border-red-200">
-          Access denied: Only Admins can manage voteheads.
+          Access denied: only parish-level roles can manage voteheads.
         </div>
       </div>
     );

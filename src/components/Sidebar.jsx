@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChartBar, FaBook, FaTimes, FaBars, FaUsers, FaChurch, FaHandHoldingHeart } from 'react-icons/fa';
 import InstallButton from './InstallButton';
+import { canManageUsers } from '../utils/permissions';
 
 const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -64,7 +65,7 @@ const Sidebar = () => {
     { path: '/app/journal-entries', label: 'Journal', icon: <FaClipboardList /> },
   ];
 
-  if (userRole === 'Admin') {
+  if (canManageUsers(user)) {
     menuItems.push({ path: '/app/user-management', label: 'User Management', icon: <FaUsers /> });
   }
 

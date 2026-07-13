@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import API from '../utils/apiConfig'; // Import your API configuration
 
 const Login = () => {
-  const [form, setForm] = useState({ email: '', password: '' }); // State for email and password
+  const [form, setForm] = useState({ identifier: '', password: '' }); // email or phone + password
   const [error, setError] = useState(''); // State to handle errors
   const [loading, setLoading] = useState(false); // State to manage loading indicator
   const navigate = useNavigate(); // Hook for navigation
@@ -82,13 +82,13 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="mb-4">
             <label className="block text-sm font-semibold text-slate-700">
-              Email
+              Email or phone
             </label>
             <input
-              type="email"
-              placeholder="Enter your email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              type="text"
+              placeholder="Enter your email or phone number"
+              value={form.identifier}
+              onChange={(e) => setForm({ ...form, identifier: e.target.value })}
               className="px-3 py-2.5 border border-slate-300 rounded-lg w-full mt-1.5 bg-white text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
               required
             />

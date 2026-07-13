@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import API from '../utils/apiConfig';
+import { isParishLevel } from '../utils/permissions';
 
 const FundManagement = () => {
   const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
   const scopedChurchId = activeChurch && activeChurch.id && activeChurch.id !== 'parish' ? activeChurch.id : '';
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.role === 'Admin';
+  const isAdmin = isParishLevel();
 
   const [report, setReport] = useState({ funds: [], totals: { received: 0, spent: 0, balance: 0 } });
   const [form, setForm] = useState({ name: '', type: 'restricted', description: '' });
