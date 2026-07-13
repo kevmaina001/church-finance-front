@@ -119,12 +119,6 @@ const Login = () => {
             Forgot your password?
           </a>
         </p>
-        <p className="text-center mt-2 text-sm text-slate-600">
-          Don't have an account?{' '}
-          <a href="/register" className="text-teal-700 font-semibold hover:text-teal-800">
-            Register here
-          </a>
-        </p>
         </div>
       </div>
     </div>
