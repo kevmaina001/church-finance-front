@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import API from '../utils/apiConfig';
 
 const VoteheadForm = () => {
-  const [form, setForm] = useState({ name: '', description: '', account: '' });
+  const [form, setForm] = useState({ name: '', description: '', account: '', localChurch: '' });
   const [voteheads, setVoteheads] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [localChurches, setLocalChurches] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [role, setRole] = useState('');
@@ -36,6 +37,31 @@ const VoteheadForm = () => {
     }
   };
 
+  const fetchLocalChurches = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await API.get('/api/local-churches', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLocalChurches((response.data.localChurches || []).filter((c) => c.isActive));
+    } catch (err) {
+      console.error('Error fetching local churches:', err.response?.data?.message || err.message);
+    }
+  };
+
+  // Reassign a votehead to a local church (empty = shared parish-wide)
+  const handleReassign = async (id, localChurch) => {
+    try {
+      const token = localStorage.getItem('token');
+      await API.put(`/api/voteheads/${id}`, { localChurch }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchVoteheads();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to reassign votehead.');
+    }
+  };
+
   useEffect(() => {
     const fetchInitialData = async () => {
       const token = localStorage.getItem('token');
@@ -47,7 +73,7 @@ const VoteheadForm = () => {
       }
 
       setRole(user.role);
-      await Promise.all([fetchVoteheads(), fetchAccounts()]);
+      await Promise.all([fetchVoteheads(), fetchAccounts(), fetchLocalChurches()]);
     };
 
     fetchInitialData();
@@ -65,7 +91,7 @@ const VoteheadForm = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Votehead added successfully.');
-      setForm({ name: '', description: '', account: '' });
+      setForm({ name: '', description: '', account: '', localChurch: '' });
       fetchVoteheads();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to add votehead. Please try again.');
@@ -146,6 +172,16 @@ const VoteheadForm = () => {
                 ))}
               </select>
             </label>
+            <label className="block">
+              <span className="text-sm font-bold text-slate-700">Local church</span>
+              <select value={form.localChurch} onChange={(e) => setForm({ ...form, localChurch: e.target.value })} className="app-field mt-1.5">
+                <option value="">Shared — all churches (parish-wide)</option>
+                {localChurches.map((c) => (
+                  <option key={c._id} value={c._id}>{c.name} only</option>
+                ))}
+              </select>
+              <span className="text-xs text-slate-500 mt-1 block">Leave shared unless this category belongs to just one church.</span>
+            </label>
             <button type="submit" className="app-primary-button w-full" disabled={loading}>
               {loading ? 'Processing...' : 'Add Votehead'}
             </button>
@@ -162,8 +198,8 @@ const VoteheadForm = () => {
               <thead>
                 <tr>
                   <th className="px-5 py-3 text-left">Name</th>
-                  <th className="px-5 py-3 text-left">Description</th>
                   <th className="px-5 py-3 text-left">Expense Account</th>
+                  <th className="px-5 py-3 text-left">Belongs to</th>
                   <th className="px-5 py-3 text-left">Actions</th>
                 </tr>
               </thead>
@@ -171,8 +207,20 @@ const VoteheadForm = () => {
                 {voteheads.map((votehead) => (
                   <tr key={votehead._id} className="hover:bg-slate-50">
                     <td className="px-5 py-4 whitespace-nowrap font-bold text-slate-900">{votehead.name}</td>
-                    <td className="px-5 py-4 text-slate-600">{votehead.description || '-'}</td>
                     <td className="px-5 py-4 whitespace-nowrap text-slate-600">{votehead.account?.name || 'N/A'}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <select
+                        value={votehead.localChurch?._id || ''}
+                        onChange={(e) => handleReassign(votehead._id, e.target.value)}
+                        className="app-field text-sm py-1.5"
+                        title="Which church this category belongs to"
+                      >
+                        <option value="">Shared (all churches)</option>
+                        {localChurches.map((c) => (
+                          <option key={c._id} value={c._id}>{c.name} only</option>
+                        ))}
+                      </select>
+                    </td>
                     <td className="px-5 py-4 whitespace-nowrap">
                       <button onClick={() => handleDelete(votehead._id)} className="text-red-700 hover:text-red-900 font-bold">Delete</button>
                     </td>

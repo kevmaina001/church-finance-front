@@ -105,7 +105,7 @@ const Dashboard = () => {
 
   const fetchRevenueSources = async () => {
     try {
-      const response = await API.get('/api/revenue-sources', {
+      const response = await API.get(`/api/revenue-sources${churchQuery}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setRevenueSources(response.data.revenueSources || []);
@@ -116,7 +116,7 @@ const Dashboard = () => {
 
   const fetchVoteheads = async () => {
     try {
-      const response = await API.get('/api/voteheads', {
+      const response = await API.get(`/api/voteheads${churchQuery}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setVoteheads(response.data.voteheads || []);

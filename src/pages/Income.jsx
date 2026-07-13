@@ -77,7 +77,9 @@ const Income = () => {
   const fetchRevenueSources = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await API.get('/api/revenue-sources', {
+      // In a church context only that church's + shared categories; parish sees all.
+      const query = scopedChurchId ? `?localChurch=${scopedChurchId}` : '';
+      const response = await API.get(`/api/revenue-sources${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRevenueSources(response.data.revenueSources || []);

@@ -83,7 +83,9 @@ const Expenditure = () => {
   const fetchVoteheads = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await API.get('/api/voteheads', {
+      // In a church context only that church's + shared categories; parish sees all.
+      const query = scopedChurchId ? `?localChurch=${scopedChurchId}` : '';
+      const response = await API.get(`/api/voteheads${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setVoteheads(response.data.voteheads || []);

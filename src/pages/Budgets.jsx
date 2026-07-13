@@ -21,9 +21,10 @@ const Budgets = () => {
     setLoading(true);
     setError('');
     try {
+      const scopeQuery = scopedChurchId ? `?localChurch=${scopedChurchId}` : '';
       const [rsRes, vhRes, repRes] = await Promise.all([
-        API.get('/api/revenue-sources', auth()),
-        API.get('/api/voteheads', auth()),
+        API.get(`/api/revenue-sources${scopeQuery}`, auth()),
+        API.get(`/api/voteheads${scopeQuery}`, auth()),
         API.get(`/api/budgets/report?year=${yr}${churchQuery}`, auth()),
       ]);
       const report = repRes.data;
@@ -50,7 +51,7 @@ const Budgets = () => {
     } finally {
       setLoading(false);
     }
-  }, [churchQuery]);
+  }, [churchQuery, scopedChurchId]);
 
   useEffect(() => { fetchAll(year); }, [year, fetchAll]);
 
