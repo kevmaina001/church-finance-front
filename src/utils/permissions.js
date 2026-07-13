@@ -17,6 +17,13 @@ export const isParishLevel = (user = getStoredUser()) => {
 // View-only users cannot modify anything.
 export const isReadOnly = (user = getStoredUser()) => ['Member', 'User'].includes(user.role);
 
+// The church a user is locked to (Treasurer/Secretary tied to a church). Null otherwise.
+// Such users can only ever view/act on their own church — never the parish or others.
+export const lockedChurchId = (user = getStoredUser()) => {
+  if (SCOPED_ROLES.includes(user.role) && user.localChurch) return user.localChurch;
+  return null;
+};
+
 // Who may manage users: admin, vicar, and the parish treasurer.
 export const canManageUsers = (user = getStoredUser()) => {
   if (['Admin', 'Special User', 'Vicar'].includes(user.role)) return true;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChartBar, FaBook, FaTimes, FaBars, FaUsers, FaChurch, FaHandHoldingHeart } from 'react-icons/fa';
 import InstallButton from './InstallButton';
-import { canManageUsers } from '../utils/permissions';
+import { canManageUsers, lockedChurchId } from '../utils/permissions';
 
 const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -148,12 +148,14 @@ const Sidebar = () => {
               <FaChurch className="flex-shrink-0 text-teal-700" />
               <span className="truncate">{activeChurch?.name || 'No context selected'}</span>
             </span>
-            <button
-              onClick={() => { navigate('/select-context'); if (isMobile) closeSidebar(); }}
-              className="text-xs text-teal-700 hover:text-teal-900 flex-shrink-0 ml-2 font-bold"
-            >
-              Switch
-            </button>
+            {!lockedChurchId(user) && (
+              <button
+                onClick={() => { navigate('/select-context'); if (isMobile) closeSidebar(); }}
+                className="text-xs text-teal-700 hover:text-teal-900 flex-shrink-0 ml-2 font-bold"
+              >
+                Switch
+              </button>
+            )}
           </div>
         </div>
         {/* Navigation Links */}
