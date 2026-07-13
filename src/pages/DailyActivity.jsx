@@ -6,9 +6,13 @@ const todayISO = () => new Date().toISOString().split('T')[0];
 
 // Daily "day book": the income and expenditure recorded on a chosen date, scoped to the
 // active church, or across all churches when working at the parish level.
+const esc = (s) => String(s || '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
 const DailyActivity = () => {
   const activeChurch = JSON.parse(localStorage.getItem('activeChurch') || 'null');
   const scopedChurchId = activeChurch && activeChurch.id && activeChurch.id !== 'parish' ? activeChurch.id : '';
+  const tenant = JSON.parse(localStorage.getItem('tenant') || '{}');
+  const tenantName = tenant?.name || 'Church';
 
   const [date, setDate] = useState(todayISO());
   const [churchFilter, setChurchFilter] = useState('');
@@ -53,6 +57,56 @@ const DailyActivity = () => {
   const totals = data?.totals || { income: 0, expenditure: 0, net: 0 };
   const showChurchCol = !scopedChurchId && !churchFilter;
   const nice = (d) => new Date(d).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const scopeLabel = scopedChurchId ? activeChurch.name : (churchFilter ? (localChurches.find((c) => c._id === churchFilter)?.name || 'Church') : 'All churches');
+
+  const printDay = () => {
+    const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) return;
+    const section = (title, rows, catLabel, accent) => {
+      const body = rows.length
+        ? rows.map((r) => `<tr>${showChurchCol ? `<td>${esc(r.church)}</td>` : ''}<td>${esc(r.category)}</td><td>${esc(r.description)}</td><td class="r">${r.amount.toLocaleString()}</td></tr>`).join('')
+        : `<tr><td colspan="${showChurchCol ? 4 : 3}" class="muted">Nothing recorded.</td></tr>`;
+      const total = rows.reduce((s, r) => s + r.amount, 0);
+      return `<h3 style="color:${accent}">${title}</h3>
+        <table><thead><tr>${showChurchCol ? '<th>Church</th>' : ''}<th>${catLabel}</th><th>Description</th><th class="r">Amount (KES)</th></tr></thead>
+        <tbody>${body}</tbody>
+        <tfoot><tr><td colspan="${showChurchCol ? 3 : 2}">Total ${title.toLowerCase()}</td><td class="r">${total.toLocaleString()}</td></tr></tfoot></table>`;
+    };
+    const byChurchHtml = (showChurchCol && byChurch.length > 1)
+      ? `<h3>By church</h3><table><thead><tr><th>Church</th><th class="r">Income</th><th class="r">Expenditure</th><th class="r">Net</th></tr></thead><tbody>${byChurch.map((b) => `<tr><td>${esc(b.church)}</td><td class="r">${b.income.toLocaleString()}</td><td class="r">${b.expenditure.toLocaleString()}</td><td class="r">${b.net.toLocaleString()}</td></tr>`).join('')}</tbody></table>`
+      : '';
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Day Book ${esc(date)}</title>
+      <style>
+        body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:32px;}
+        h1{font-size:20px;margin:0;} h2{font-size:14px;font-weight:normal;color:#555;margin:4px 0 20px;}
+        h3{font-size:14px;margin:22px 0 8px;border-bottom:2px solid #eee;padding-bottom:4px;}
+        table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;}
+        th,td{border-bottom:1px solid #e5e5e5;padding:7px 8px;text-align:left;}
+        th{background:#f5f5f5;text-transform:uppercase;font-size:10px;color:#555;}
+        tfoot td{font-weight:bold;border-top:2px solid #333;}
+        .r{text-align:right;} .muted{color:#999;text-align:center;}
+        .summary{display:flex;gap:24px;margin:16px 0;font-size:13px;}
+        .summary b{display:block;font-size:16px;}
+        .sign{margin-top:40px;display:flex;gap:60px;font-size:12px;color:#333;}
+        .sign div{flex:1;border-top:1px solid #333;padding-top:6px;}
+        @media print{body{margin:12px;}}
+      </style></head><body>
+      <h1>${esc(tenantName)}</h1>
+      <h2>Daily Activity (Day Book) &middot; ${esc(scopeLabel)} &middot; ${esc(nice(date))}</h2>
+      <div class="summary">
+        <div>Total income<b>KES ${totals.income.toLocaleString()}</b></div>
+        <div>Total expenditure<b>KES ${totals.expenditure.toLocaleString()}</b></div>
+        <div>Net<b>KES ${totals.net.toLocaleString()}</b></div>
+      </div>
+      ${byChurchHtml}
+      ${section('Income', income, 'Revenue Source', '#0f766e')}
+      ${section('Expenditure', expenditure, 'Votehead', '#c2410c')}
+      <div class="sign"><div>Prepared by</div><div>Checked by</div><div>Date</div></div>
+      </body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 300);
+  };
 
   const Table = ({ title, rows, catLabel, tone }) => (
     <div className="app-card overflow-hidden">
@@ -108,6 +162,20 @@ const DailyActivity = () => {
             </select>
           )}
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="app-field w-44" />
+          <button
+            onClick={() => setDate(todayISO())}
+            disabled={date === todayISO()}
+            className="app-secondary-button text-sm disabled:opacity-50"
+          >
+            Today
+          </button>
+          <button
+            onClick={printDay}
+            disabled={loading || (income.length === 0 && expenditure.length === 0)}
+            className="app-primary-button text-sm disabled:opacity-50"
+          >
+            Print
+          </button>
         </div>
       </section>
 
