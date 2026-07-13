@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChartBar, FaBook, FaTimes, FaBars, FaUsers, FaChurch, FaHandHoldingHeart } from 'react-icons/fa';
+import InstallButton from './InstallButton';
 
 const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -68,7 +69,7 @@ const Sidebar = () => {
     <>
       {/* Mobile Navbar with Hamburger Button */}
       {isMobile && !sidebarOpen && (
-        <div className="fixed top-0 left-0 w-full h-16 bg-white/95 backdrop-blur border-b border-slate-200 flex items-center px-4 z-50">
+        <div className="fixed top-0 left-0 w-full min-h-[4rem] bg-white/95 backdrop-blur border-b border-slate-200 flex items-center px-4 z-50 safe-top">
           <button
             onClick={toggleSidebar}
             className="text-slate-700 hover:text-teal-700 rounded-lg p-2 transition duration-200"
@@ -165,7 +166,8 @@ const Sidebar = () => {
             </NavLink>
           ))}
         </nav>
-        <div className="p-4 border-t border-slate-200 mt-auto">
+        <InstallButton />
+        <div className="p-4 border-t border-slate-200 mt-auto safe-bottom">
           <p className="text-xs text-slate-500 text-center">
             Financial Management System
           </p>

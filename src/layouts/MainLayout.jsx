@@ -17,7 +17,7 @@ const MainLayout = () => {
       <Sidebar />
 
       <main className="flex-1 w-full overflow-x-hidden flex flex-col">
-        <div className="flex-1 w-full ml-0 md:ml-72 md:w-[calc(100vw-18rem)] px-4 sm:px-6 xl:px-8 py-6 pt-20 md:pt-6">
+        <div className="flex-1 w-full ml-0 md:ml-72 md:w-[calc(100vw-18rem)] px-4 sm:px-6 xl:px-8 py-6 pt-20 md:pt-6 safe-bottom">
           <Outlet />
         </div>
         <Footer />

@@ -6,6 +6,37 @@ body {
   color: #111827;
 }
 
+/* --- Mobile / PWA polish --- */
+html,
+body {
+  -webkit-tap-highlight-color: transparent; /* no grey flash on tap */
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none; /* no rubber-band / pull-to-refresh bounce in standalone */
+}
+
+/* Never let a page scroll sideways on a phone */
+body {
+  overflow-x: hidden;
+}
+
+/* iOS zooms the whole page when focusing an input smaller than 16px. Force 16px on phones. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea,
+  .app-field {
+    font-size: 16px;
+  }
+}
+
+/* Respect the home-indicator / notch area on installed phones */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 ::selection {
   background: rgba(13, 148, 136, 0.18);
 }
