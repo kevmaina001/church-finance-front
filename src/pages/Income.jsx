@@ -164,22 +164,22 @@ const Income = () => {
 
   return (
     <div className="app-page space-y-6">
-      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+      <section className="rounded-2xl overflow-hidden bg-gradient-to-r from-teal-600 to-teal-700 text-white p-6 sm:p-7 shadow-[0_16px_40px_rgba(15,118,110,0.22)] flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-teal-700">Transactions</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-950 mt-1">Income</h1>
-          <p className="text-sm text-slate-600 mt-2">
-            Capture income records for <span className="font-bold text-slate-900">{scopedChurchId ? activeChurch.name : 'the whole parish'}</span>.
+          <p className="text-sm font-semibold text-teal-100">Transactions · Money in</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mt-1">Income</h1>
+          <p className="text-sm text-teal-50/90 mt-2">
+            Capture income records for <span className="font-bold text-white">{scopedChurchId ? activeChurch.name : 'the whole parish'}</span>.
           </p>
         </div>
-        <div className="app-muted-panel px-4 py-3">
-          <p className="text-xs font-bold uppercase text-slate-500">Total shown</p>
-          <p className="text-xl font-bold text-slate-950">KES {grandTotal.toLocaleString()}</p>
+        <div className="rounded-xl bg-white/15 border border-white/25 backdrop-blur px-5 py-3">
+          <p className="text-xs font-bold uppercase text-teal-50/80">Total shown</p>
+          <p className="text-2xl font-bold text-white">KES {grandTotal.toLocaleString()}</p>
         </div>
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-5 items-start">
-        <div className="app-card p-5">
+        <div className="app-card p-5" style={{ borderTop: '4px solid #0f766e' }}>
           <h2 className="text-lg font-bold text-slate-950">{editId ? 'Update income' : 'Add income'}</h2>
           <p className="text-sm text-slate-500 mt-1">Use concise descriptions so reports remain easy to scan.</p>
 
