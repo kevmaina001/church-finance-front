@@ -58,11 +58,12 @@ const Expenditure = () => {
       const response = await API.get('/api/accounts', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setAccounts(
-        (response.data.accounts || []).filter(
-          (account) => account.isActive && account.type === 'asset' && Number(account.code) >= 1000 && Number(account.code) <= 1099
-        )
+      const money = (response.data.accounts || []).filter(
+        (account) => account.isActive && account.type === 'asset' && Number(account.code) >= 1000 && Number(account.code) <= 1099
       );
+      setAccounts(money);
+      // Default the account to the first available (Equity), so it's pre-selected.
+      setForm((prev) => (prev.assetAccount ? prev : { ...prev, assetAccount: money[0]?._id || '' }));
     } catch (error) {
       console.error('Error fetching accounts:', error.response?.data?.message || error.message);
     }
@@ -119,7 +120,7 @@ const Expenditure = () => {
         });
       }
 
-      setForm({ votehead: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: '', localChurch: scopedChurchId, fund: '', date: new Date().toISOString().split('T')[0] });
+      setForm({ votehead: '', amount: '', description: '', year: new Date().getFullYear(), assetAccount: accounts[0]?._id || '', localChurch: scopedChurchId, fund: '', date: new Date().toISOString().split('T')[0] });
       fetchExpenditures();
     } catch (error) {
       console.error('Error saving expenditure:', error.response?.data?.message || error.message);
@@ -187,7 +188,7 @@ const Expenditure = () => {
             </select>
 
             <select value={form.assetAccount} onChange={(e) => setForm({ ...form, assetAccount: e.target.value })} className="app-field" required>
-              <option value="">Select cash or bank account</option>
+              <option value="">Select bank account</option>
               {accounts.map((account) => (
                 <option key={account._id} value={account._id}>{account.code} - {account.name}</option>
               ))}
