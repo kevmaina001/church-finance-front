@@ -14,6 +14,7 @@ import {
   ArcElement,
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
+import ParishOverview from '../components/ParishOverview';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -305,6 +306,9 @@ const Dashboard = () => {
           Signed in as <span className="font-bold text-slate-950">{userName}</span>
         </div>
       </section>
+
+      {/* Parish (consolidated) context gets the per-church overview up top */}
+      {!scopedChurchId && <ParishOverview />}
 
       <section className="app-card p-5 sm:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
