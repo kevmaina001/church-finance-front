@@ -22,11 +22,15 @@ import Budgets from './pages/Budgets';
 import FundManagement from './pages/FundManagement';
 import DailyActivity from './pages/DailyActivity';
 import SelectContext from './pages/SelectContext';
+import { isSessionExpired, clearSession } from './utils/session';
 
 // A component to handle the root URL redirect logic
 const RootRedirect = () => {
-  const token = localStorage.getItem('token');
-  if (!token) return <Navigate to="/login" replace />;
+  // An expired token is no better than none: drop it and start clean.
+  if (isSessionExpired()) {
+    clearSession();
+    return <Navigate to="/login" replace />;
+  }
   // Logged in: if a working context (local church / parish) has been chosen, go to the
   // app; otherwise send them to pick one first.
   const hasContext = localStorage.getItem('activeChurch');

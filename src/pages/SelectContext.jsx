@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaChurch, FaLayerGroup } from 'react-icons/fa';
 import API from '../utils/apiConfig';
 import { lockedChurchId } from '../utils/permissions';
+import { isSessionExpired, clearSession } from '../utils/session';
 
 // The "active context" decides whether the app shows one local church's book
 // or the whole parish (consolidated). Stored in localStorage as { id, name }
@@ -18,16 +19,14 @@ const SelectContext = () => {
   const parishName = tenant?.name || 'Parish';
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (isSessionExpired()) {
+      clearSession();
       navigate('/login');
       return;
     }
     (async () => {
       try {
-        const res = await API.get('/api/local-churches', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await API.get('/api/local-churches');
         const list = (res.data.localChurches || []).filter((c) => c.isActive);
         setChurches(list);
         // Church-scoped users can only work in their own church — lock them to it and skip the choice.

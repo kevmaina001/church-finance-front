@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import API from '../utils/apiConfig'; // Import your API configuration
 
 const Login = () => {
@@ -7,6 +7,9 @@ const Login = () => {
   const [error, setError] = useState(''); // State to handle errors
   const [loading, setLoading] = useState(false); // State to manage loading indicator
   const navigate = useNavigate(); // Hook for navigation
+  const [searchParams] = useSearchParams();
+  // Set when a lapsed session bounced the user back here (see utils/session.js)
+  const sessionExpired = searchParams.get('expired') === '1';
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -74,6 +77,11 @@ const Login = () => {
             <h2 className="text-3xl font-bold text-slate-950 mt-1">Sign in</h2>
             <p className="text-sm text-slate-500 mt-2">Use your account credentials to continue.</p>
           </div>
+        {sessionExpired && !error && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg mb-4 text-sm">
+            Your session expired for security. Please sign in again to continue.
+          </div>
+        )}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4 text-sm">
             {error}

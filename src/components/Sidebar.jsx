@@ -3,6 +3,7 @@ import { useNavigate, NavLink } from 'react-router-dom';
 import { FaUserCircle, FaSignOutAlt, FaHome, FaFileInvoiceDollar, FaChartPie, FaClipboardList, FaChartBar, FaBook, FaTimes, FaBars, FaUsers, FaChurch, FaHandHoldingHeart } from 'react-icons/fa';
 import InstallButton from './InstallButton';
 import { canManageUsers, lockedChurchId } from '../utils/permissions';
+import { clearSession } from '../utils/session';
 
 const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -42,9 +43,7 @@ const Sidebar = () => {
   }, [isMobile, sidebarOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('tenant');
+    clearSession();
     navigate('/login');
   };
 
